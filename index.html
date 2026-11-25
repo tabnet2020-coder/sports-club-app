@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="نظام إدارة النادي الرياضي - تسجيل المشتركين، القياسات، الباركود، والتقارير" />
+  <title>نادي اللياقة الذكي - إدارة النادي الرياضي</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon-192.svg" />
+  <link rel="apple-touch-icon" href="./icon-192.svg" />
+
+  <!-- Arabic Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Libraries: QRCode, SheetJS (Excel), Html5-QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --primary-light: #ccfbf1;
+      --accent: #14b8a6;
+      --bg: #f4f9f8;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #059669;
+      --radius: 16px;
+      --shadow: 0 6px 24px rgba(15, 118, 110, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, #f0fdfa 0%, #f8fafc 55%, #ecfeff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 120px;
+    }
+
+    /* Header */
+    .topbar {
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      color: #fff;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 18px rgba(15, 118, 110, 0.22);
+    }
+    .topbar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      backdrop-filter: blur(6px);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 0.8rem;
+      opacity: 0.88;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill-btn {
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.28);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover { background: rgba(255,255,255,0.26); transform: translateY(-1px); }
+
+    /* Container */
+    .container {
+      max-width: 1240px;
+      width: 100%;
+      margin: 22px auto;
+      padding: 0 16px;
+      flex: 1;
+    }
+
+    /* Navigation Tabs (Sports Buttons) */
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .sport-btn {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 15px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: all 0.22s ease;
+    }
+    .sport-btn .ico {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      background: #f0fdfa;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      transition: all 0.22s;
+    }
+    .sport-btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 26px rgba(15, 118, 110, 0.14);
+    }
+    .sport-btn.active {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: #fff;
+      border-color: transparent;
+    }
+    .sport-btn.active .ico {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    /* Sections */
+    .section { display: none; animation: fadeIn 0.28s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .card-title {
+      margin: 0;
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+    .stat-value { font-size: 1.55rem; font-weight: 800; color: var(--primary-dark); margin-top: 4px; }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #f0fdfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    /* Daily Tip Banner */
+    .tip-banner {
+      background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%);
+      border: 1.5px solid #99f6e4;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .tip-text h3 { margin: 0 0 4px; font-size: 1rem; color: #0f766e; }
+    .tip-text p { margin: 0; font-size: 0.96rem; font-weight: 600; color: #1e293b; }
+
+    /* Two-column layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    /* Forms */
+    .form-section-title {
+      background: #f0fdfa;
+      color: #0f766e;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin: 18px 0 12px;
+      border-right: 4px solid var(--primary);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #334155;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 11px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.16);
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .chip-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .chip-check input { width: auto; margin: 0; }
+
+    /* Buttons */
+    .btn {
+      border: none;
+      border-radius: 11px;
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #047857; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-warning { background: var(--warning); color: #fff; }
+    .btn-sm { padding: 6px 11px; font-size: 0.8rem; border-radius: 8px; }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.87rem;
+    }
+    th, td {
+      padding: 11px 12px;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      white-space: nowrap;
+    }
+    th {
+      background: #f0fdfa;
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+    tr:hover td { background: #f8fafc; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.77rem;
+      font-weight: 700;
+    }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-teal { background: #ccfbf1; color: #115e59; }
+
+    /* QR Box */
+    .qr-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1.5px dashed #99f6e4;
+      border-radius: 14px;
+      text-align: center;
+    }
+    .qr-box canvas, .qr-box img {
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    iframe.map-frame {
+      width: 100%;
+      height: 230px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+      backdrop-filter: blur(3px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+    .modal-lg { max-width: 960px; }
+
+    /* Persistent Bottom Footer */
+    .persistent-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 10px 16px;
+      z-index: 90;
+      border-top: 3px solid var(--accent);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.18);
+      font-size: 0.82rem;
+    }
+    .footer-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .footer-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+    .footer-info span { display: inline-flex; align-items: center; gap: 5px; }
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .footer-links a, .footer-links button {
+      color: #fff;
+      text-decoration: none;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .footer-links a:hover, .footer-links button:hover {
+      background: var(--primary);
+      border-color: var(--accent);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 84px;
+      left: 20px;
+      background: #0f172a;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      z-index: 300;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.22);
+      display: none;
+    }
+    .toast.show { display: block; animation: fadeIn 0.25s ease; }
+
+    /* Print A4 Support */
+    #printArea { display: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea {
+        display: block !important;
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        padding: 20mm;
+        color: #000;
+      }
+      @page { size: A4; margin: 10mm; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding-bottom: 165px; }
+      .nav-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo">🏋️</div>
+        <div>
+          <h1>
+            <span id="headerClubName">نادي اللياقة الذكي</span>
+            <button class="pill-btn" style="padding:3px 10px;font-size:0.74rem;" onclick="openClubSettingsModal()">✏️ تعديل</button>
+          </h1>
+          <p id="headerClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="pill-btn" id="activeUserBadge" onclick="openLoginModal()">👤 عمر الطابوني (أدمن رئيسي)</span>
+        <button class="pill-btn" id="installPwaBtn" style="display:none;" onclick="triggerPwaInstall()">📲 تثبيت التطبيق</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="toast" id="toast"></div>
+
+  <main class="container">
+    <!-- Sports Navigation Buttons -->
+    <nav class="nav-grid" aria-label="الأقسام الرئيسية">
+      <button class="sport-btn active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+        <span class="ico">🏠</span><span>الرئيسية</span>
+      </button>
+      <button class="sport-btn" data-tab="register" onclick="switchTab('register', this)">
+        <span class="ico">📝</span><span>تسجيل مشترك</span>
+      </button>
+      <button class="sport-btn" data-tab="members" onclick="switchTab('members', this)">
+        <span class="ico">👥</span><span>سجل المشتركين</span>
+      </button>
+      <button class="sport-btn" data-tab="barcode" onclick="switchTab('barcode', this)">
+        <span class="ico">📷</span><span>الدخول بالباركود</span>
+      </button>
+      <button class="sport-btn" data-tab="users" onclick="switchTab('users', this)">
+        <span class="ico">🛡️</span><span>المستخدمون</span>
+      </button>
+      <button class="sport-btn" data-tab="location" onclick="switchTab('location', this)">
+        <span class="ico">📍</span><span>العنوان والتثبيت</span>
+      </button>
+    </nav>
+
+    <!-- 1. DASHBOARD -->
+    <section id="tab-dashboard" class="section active">
+      <!-- Daily Tip -->
+      <div class="tip-banner">
+        <div class="tip-text">
+          <h3 id="tipPeriodTitle">☀️ تلميح الصباح الرياضي</h3>
+          <p id="tipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="toggleTipPeriod()">🔄 تبديل صباح/مساء</button>
+          <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div>
+            <div class="stat-label">إجمالي المشتركين</div>
+            <div class="stat-value" id="statTotalMembers">0</div>
+          </div>
+          <div class="stat-icon">🏅</div>
+        </div>
+        <div class="stat-card">
+          <div>
+            <div class="stat-label">حضور اليوم</div>
+            <div class="stat-value" id="statTodayAttendance">0</div>
+          </div>
+          <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-card">
+          <div>
+            <div class="stat-label">إجمالي المدفوعات</div>
+            <div class="stat-value" id="statTotalPaid">0 د.ل</div>
+          </div>
+          <div class="stat-icon">💳</div>
+        </div>
+        <div class="stat-card">
+          <div>
+            <div class="stat-label">المبالغ المتبقية</div>
+            <div class="stat-value" id="statTotalRemaining" style="color:#d97706;">0 د.ل</div>
+          </div>
+          <div class="stat-icon">⏳</div>
+        </div>
+      </div>
+
+      <!-- Quick QR Preview + Map Preview -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📍 باركود عنوان النادي والخريطة المباشرة</h2>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('location', document.querySelector('[data-tab=location]'))">⚙️ تعديل العنوان</button>
+          </div>
+          <p id="dashAddressText" style="margin:0 0 12px;font-weight:700;color:#334155;">سبها، ليبيا</p>
+          <div class="qr-box">
+            <div id="dashLocationQr"></div>
+            <small style="margin-top:8px;color:#64748b;">امسح الباركود لفتح موقع النادي مباشرة على خرائط جوجل</small>
+          </div>
+          <iframe id="dashMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📲 باركود تثبيت التطبيق على الهاتف</h2>
+            <button class="btn btn-primary btn-sm" onclick="printInstallPoster()">🖨️ طباعة ملصق A4</button>
+          </div>
+          <p style="margin:0 0 12px;color:#475569;font-size:0.9rem;">
+            يمكن لأي مشترك أو زائر مسح هذا الباركود لفتح التطبيق وتثبيته مباشرة على هاتفه.
+          </p>
+          <div class="qr-box">
+            <div id="dashAppQr"></div>
+            <small id="dashAppUrlLabel" style="margin-top:8px;color:#0f766e;font-weight:700;word-break:break-all;"></small>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="exportMembersExcel()">📊 تصدير المشتركين (Excel)</button>
+            <button class="btn btn-secondary" onclick="switchTab('register', document.querySelector('[data-tab=register]'))">➕ تسجيل مشترك جديد</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. REGISTRATION FORM -->
+    <section id="tab-register" class="section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title" id="regFormTitle">📝 استمارة تسجيل مشترك جديد</h2>
+          <button class="btn btn-secondary btn-sm" onclick="resetRegistrationForm()">🔄 تفريغ الحقول</button>
+        </div>
+
+        <form id="memberForm" onsubmit="saveMember(event)">
+          <input type="hidden" id="editMemberId" />
+
+          <!-- Basic Info -->
+          <div class="form-section-title">1️⃣ البيانات الأساسية والبدنية</div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>الاسم الكامل *</label>
+              <input type="text" id="mName" required placeholder="مثال: سارة محمد علي" />
+            </div>
+            <div class="form-group">
+              <label>العمر (سنة) *</label>
+              <input type="number" id="mAge" required min="8" max="100" placeholder="25" />
+            </div>
+            <div class="form-group">
+              <label>رقم الهاتف *</label>
+              <input type="tel" id="mPhone" required placeholder="09XXXXXXXX" />
+            </div>
+            <div class="form-group">
+              <label>الوزن (كجم) *</label>
+              <input type="number" step="0.1" id="mWeight" required placeholder="68" oninput="calcBMI()" />
+            </div>
+            <div class="form-group">
+              <label>الطول (سم) *</label>
+              <input type="number" step="0.1" id="mHeight" required placeholder="165" oninput="calcBMI()" />
+            </div>
+            <div class="form-group">
+              <label>مؤشر كتلة الجسم (BMI - تلقائي)</label>
+              <input type="text" id="mBmiDisplay" readonly placeholder="يحسب تلقائياً" style="background:#f0fdfa;font-weight:700;color:#0f766e;" />
+            </div>
+          </div>
+
+          <!-- Medical & Injuries -->
+          <div class="form-section-title">2️⃣ الحالة الصحية والأمراض والإصابات السابقة</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>هل تعاني من أمراض مزمنة؟</label>
+              <select id="mHasDisease" onchange="toggleDiseaseFields()">
+                <option value="لا">لا</option>
+                <option value="نعم">نعم</option>
+              </select>
+              <div id="diseaseBox" style="display:none;margin-top:8px;">
+                <div class="checkbox-group">
+                  <label class="chip-check"><input type="checkbox" name="diseases" value="السكري" /> السكري</label>
+                  <label class="chip-check"><input type="checkbox" name="diseases" value="ضغط الدم" /> ضغط الدم</label>
+                  <label class="chip-check"><input type="checkbox" name="diseases" value="الربو" /> الربو</label>
+                  <label class="chip-check"><input type="checkbox" name="diseases" value="أمراض القلب" /> أمراض القلب</label>
+                  <label class="chip-check"><input type="checkbox" name="diseases" value="الغدة الدرقية" /> الغدة الدرقية</label>
+                </div>
+                <input type="text" id="mOtherDisease" placeholder="اذكر أي مرض آخر أو تفاصيل..." style="margin-top:8px;" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>هل تعرضت لإصابات رياضية أو جسدية سابقاً؟</label>
+              <select id="mHasInjury" onchange="toggleInjuryFields()">
+                <option value="لا">لا</option>
+                <option value="نعم">نعم</option>
+              </select>
+              <div id="injuryBox" style="display:none;margin-top:8px;">
+                <input type="text" id="mInjuryLocation" placeholder="مكان الإصابة (مثال: الركبة اليمنى، أسفل الظهر، الكتف...)" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Body Measurements -->
+          <div class="form-section-title">3️⃣ قياسات أجزاء الجسم (بالسنتيمتر - سم)</div>
+          <div class="grid-4">
+            <div class="form-group">
+              <label>الذراع اليمنى (سم)</label>
+              <input type="number" step="0.1" id="mArmRight" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الذراع اليسرى (سم)</label>
+              <input type="number" step="0.1" id="mArmLeft" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الفخذ الأيمن (سم)</label>
+              <input type="number" step="0.1" id="mThighRight" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الفخذ الأيسر (سم)</label>
+              <input type="number" step="0.1" id="mThighLeft" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>المؤخرة / الأرداف (سم)</label>
+              <input type="number" step="0.1" id="mGlutes" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الخصر (سم)</label>
+              <input type="number" step="0.1" id="mWaist" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الصدر (سم)</label>
+              <input type="number" step="0.1" id="mChest" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>الأكتاف (سم)</label>
+              <input type="number" step="0.1" id="mShoulders" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- Schedule & Coach -->
+          <div class="form-section-title">4️⃣ موعد التمارين واسم المدربة</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>فترة التمارين *</label>
+              <select id="mShift" required>
+                <option value="صباحي">الفترة الصباحية (صباحاً)</option>
+                <option value="مسائي">الفترة المسائية (مساءً)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>اسم المدربة *</label>
+              <input type="text" id="mCoach" required placeholder="مثال: كابتن أمل" />
+            </div>
+          </div>
+
+          <!-- Financial Section -->
+          <div class="form-section-title">5️⃣ الجانب المالي والدفع</div>
+          <div class="grid-4">
+            <div class="form-group">
+              <label>قيمة الاشتراك الكلية (د.ل) *</label>
+              <input type="number" step="0.5" id="mTotalFee" required placeholder="150" oninput="calcRemaining()" />
+            </div>
+            <div class="form-group">
+              <label>المبلغ المدفوع (د.ل) *</label>
+              <input type="number" step="0.5" id="mPaidAmount" required placeholder="150" oninput="calcRemaining()" />
+            </div>
+            <div class="form-group">
+              <label>المبلغ المتبقي (تلقائي)</label>
+              <input type="number" id="mRemaining" readonly style="background:#fffbeb;font-weight:800;color:#b45309;" />
+            </div>
+            <div class="form-group">
+              <label>طريقة الدفع *</label>
+              <select id="mPaymentMethod" required>
+                <option value="نقدي">نقدي (كاش)</option>
+                <option value="بطاقة مصرفية">بطاقة مصرفية</option>
+                <option value="تحويل بنكي">تحويل بنكي</option>
+                <option value="سداد / تداول">سداد / تداول</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-top:12px;">
+            <div class="form-group">
+              <label>تاريخ الدفع / التسجيل</label>
+              <input type="date" id="mPayDate" />
+            </div>
+            <div class="form-group">
+              <label>ملاحظات مالية أو تدريبية</label>
+              <input type="text" id="mNotes" placeholder="أي ملاحظات إضافية..." />
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary">💾 حفظ البيانات وإصدار الباركود</button>
+            <button type="button" class="btn btn-secondary" onclick="resetRegistrationForm()">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. MEMBERS DIRECTORY -->
+    <section id="tab-members" class="section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">👥 سجل المشتركين</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-success btn-sm" onclick="exportMembersExcel()">📊 تصدير Excel (.xlsx)</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportMembersCSV()">📄 تصدير CSV</button>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-bottom:14px;">
+          <input type="text" id="searchMember" placeholder="🔍 ابحث بالاسم أو الهاتف أو الباركود..." oninput="renderMembersTable()" />
+          <select id="filterShift" onchange="renderMembersTable()">
+            <option value="">كل الفترات</option>
+            <option value="صباحي">الفترة الصباحية</option>
+            <option value="مسائي">الفترة المسائية</option>
+          </select>
+          <select id="filterPayment" onchange="renderMembersTable()">
+            <option value="">كل الحالات المالية</option>
+            <option value="paid">خالص الدفع</option>
+            <option value="due">عليه متبقي</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الباركود</th>
+                <th>الاسم</th>
+                <th>العمر</th>
+                <th>الهاتف</th>
+                <th>الفترة</th>
+                <th>المدربة</th>
+                <th>المدفوع / الإجمالي</th>
+                <th>الحالة المالية</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="membersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. BARCODE LOGIN & ATTENDANCE -->
+    <section id="tab-barcode" class="section">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📷 مسح باركود العضوية وتسجيل الحضور</h2>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>إدخال رمز الباركود يدوياً أو بجهاز القارئ:</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="manualBarcodeInput" placeholder="مثال: CLUB-1001" onkeydown="if(event.key==='Enter') checkInByBarcode()" />
+              <button class="btn btn-primary" onclick="checkInByBarcode()">✅ دخول</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="btn btn-success btn-sm" onclick="startCameraScanner()">📸 تشغيل الكاميرا للمسح</button>
+            <button class="btn btn-danger btn-sm" onclick="stopCameraScanner()">⏹️ إيقاف الكاميرا</button>
+          </div>
+          <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🪪 نتيجة المسح وملف المشترك</h2>
+          </div>
+          <div id="scanResultBox" style="color:#64748b;text-align:center;padding:24px 10px;">
+            قم بمسح باركود المشترك أو إدخاله لعرض بياناته الكاملة وتسجيل حضوره تلقائياً.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📋 سجل الحضور اليومي</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الوقت والتاريخ</th>
+                <th>الباركود</th>
+                <th>اسم المشترك</th>
+                <th>الفترة</th>
+                <th>المدربة</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. USERS & ROLES -->
+    <section id="tab-users" class="section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🛡️ إدارة المستخدمين والصلاحيات</h2>
+          <button class="btn btn-primary btn-sm" onclick="openLoginModal()">🔑 تبديل المستخدم</button>
+        </div>
+
+        <form id="userForm" onsubmit="addUser(event)" class="grid-4" style="margin-bottom:18px;align-items:end;">
+          <div class="form-group">
+            <label>الاسم الكامل *</label>
+            <input type="text" id="uFullName" required placeholder="مثال: أمل السالم" />
+          </div>
+          <div class="form-group">
+            <label>اسم المستخدم *</label>
+            <input type="text" id="uUsername" required placeholder="amal_coach" />
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور *</label>
+            <input type="password" id="uPassword" required placeholder="****" />
+          </div>
+          <div class="form-group">
+            <label>الدور الوظيفي</label>
+            <select id="uRole">
+              <option value="مدربة">مدربة</option>
+              <option value="استقبال">استقبال</option>
+              <option value="محاسب">محاسب</option>
+              <option value="أدمن">أدمن</option>
+            </select>
+          </div>
+          <div>
+            <button type="submit" class="btn btn-success" style="width:100%;">➕ إضافة مستخدم</button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>اسم المستخدم</th>
+                <th>الصلاحية</th>
+                <th>بيانات التواصل</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. LOCATION & APP INSTALL -->
+    <section id="tab-location" class="section">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📍 إعدادات عنوان النادي والخريطة</h2>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>عنوان النادي (كتابةً):</label>
+            <input type="text" id="clubAddressInput" placeholder="مثال: سبها - شارع جمال عبد الناصر" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>رابط خرائط جوجل (اختياري - لصق الرابط المباشر):</label>
+            <input type="url" id="clubMapUrlInput" placeholder="https://maps.google.com/?q=..." />
+          </div>
+          <button class="btn btn-primary" onclick="saveClubLocation()">💾 حفظ وتحديث الباركود والخريطة</button>
+          <div class="qr-box" style="margin-top:16px;">
+            <div id="settingsLocationQr"></div>
+            <small style="margin-top:6px;color:#64748b;">باركود عنوان النادي</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📲 إعدادات باركود تثبيت التطبيق (PWA)</h2>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>رابط استضافة التطبيق (GitHub Pages / Render):</label>
+            <input type="url" id="appUrlInput" placeholder="https://tabnet2020-coder.github.io/sports-club-app/" />
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn btn-primary" onclick="saveAppUrl()">💾 تحديث باركود التثبيت</button>
+            <button class="btn btn-success" onclick="printInstallPoster()">🖨️ طباعة ملصق A4 للتثبيت</button>
+          </div>
+          <div class="qr-box">
+            <div id="settingsAppQr"></div>
+            <small style="margin-top:6px;color:#0f766e;font-weight:700;">امسح لتثبيت التطبيق على الهاتف</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- PERSISTENT BOTTOM FOOTER -->
+  <footer class="persistent-footer">
+    <div class="footer-inner">
+      <div class="footer-info">
+        <span>👨‍💻 <strong>المطور ومسؤول النظام:</strong> عمر الطابوني</span>
+        <span>📍 <strong>العنوان:</strong> <span id="footerAddress">سبها، ليبيا</span></span>
+        <span>📞 <strong>الهاتف:</strong> 0923482662</span>
+      </div>
+      <div class="footer-links">
+        <a href="tel:0923482662">📞 اتصال</a>
+        <a href="https://wa.me/218923482662" target="_blank" rel="noopener">💬 واتساب</a>
+        <a href="mailto:tabnet2020@gmail.com">✉️ البريد</a>
+        <button onclick="openVisitorLogPrompt()">👁️ سجل الزوار</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: Club Name Settings -->
+  <div class="modal-backdrop" id="clubSettingsModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title">✏️ تخصيص اسم النادي وشعاره</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('clubSettingsModal')">✖</button>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>اسم النادي:</label>
+        <input type="text" id="inputClubName" />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>الشعار / الوصف المختصر:</label>
+        <input type="text" id="inputClubTagline" />
+      </div>
+      <button class="btn btn-primary" onclick="saveClubBrand()">💾 حفظ التغييرات</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Login / Switch User -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title">🔑 تسجيل الدخول / تبديل المستخدم</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('loginModal')">✖</button>
+      </div>
+      <p style="font-size:0.85rem;color:#64748b;margin-top:0;">الحساب الافتراضي للأدمن الرئيسي: <strong>admin</strong> / كلمة المرور: <strong>1234</strong></p>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>اسم المستخدم:</label>
+        <input type="text" id="loginUsername" value="admin" />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>كلمة المرور:</label>
+        <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter') performLogin()" />
+      </div>
+      <button class="btn btn-primary" onclick="performLogin()">دخول</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Member Full Profile -->
+  <div class="modal-backdrop" id="memberProfileModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title">🪪 ملف المشترك الكامل</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('memberProfileModal')">✖</button>
+      </div>
+      <div id="memberProfileBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Visitor Log (Password Protected: tabzed6699) -->
+  <div class="modal-backdrop" id="visitorModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title">👁️ سجل الزوار والأنشطة (محمي)</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeVisitorLog()">🔒 قفل وإغلاق</button>
+      </div>
+
+      <!-- Password Gate -->
+      <div id="visitorAuthGate">
+        <p style="color:#475569;margin-top:0;">أدخل كلمة المرور الخاصة بمسؤول النظام للوصول إلى سجل الزوار:</p>
+        <div style="display:flex;gap:8px;max-width:420px;">
+          <input type="password" id="visitorPasswordInput" placeholder="كلمة المرور..." onkeydown="if(event.key==='Enter') unlockVisitorLog()" />
+          <button class="btn btn-primary" onclick="unlockVisitorLog()">🔓 فتح</button>
+        </div>
+      </div>
+
+      <!-- Protected Content -->
+      <div id="visitorLogContent" style="display:none;">
+        <div class="stats-grid" style="margin-bottom:12px;">
+          <div class="stat-card">
+            <div><div class="stat-label">إجمالي الأحداث والزيارات</div><div class="stat-value" id="vTotalEvents">0</div></div>
+            <div class="stat-icon">📊</div>
+          </div>
+          <div class="stat-card">
+            <div><div class="stat-label">عدد الجلسات</div><div class="stat-value" id="vTotalSessions">0</div></div>
+            <div class="stat-icon">🖥️</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <input type="text" id="visitorSearch" placeholder="🔍 بحث في السجل..." oninput="renderVisitorTable()" style="flex:1;min-width:200px;" />
+          <button class="btn btn-success btn-sm" onclick="exportVisitorLogExcel()">📊 تصدير Excel</button>
+          <button class="btn btn-danger btn-sm" onclick="clearVisitorLog()">🗑️ مسح السجل</button>
+        </div>
+        <div class="table-wrap" style="max-height:380px;overflow-y:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>الوقت والتاريخ</th>
+                <th>رقم الجلسة</th>
+                <th>الإجراء</th>
+                <th>المستخدم</th>
+                <th>الجهاز / المتصفح</th>
+                <th>الشاشة</th>
+              </tr>
+            </thead>
+            <tbody id="visitorTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT AREA (A4) -->
+  <div id="printArea"></div>
+
+  <script>
+    // ==================== STORAGE KEYS & DEFAULTS ====================
+    const KEYS = {
+      CLUB: 'sfc_club_settings_v1',
+      MEMBERS: 'sfc_members_v1',
+      USERS: 'sfc_users_v1',
+      ATTENDANCE: 'sfc_attendance_v1',
+      VISITORS: 'sfc_visitors_v1',
+      ACTIVE_USER: 'sfc_active_user_v1'
+    };
+
+    const VISITOR_PASS = 'tabzed6699';
+
+    const DEFAULT_CLUB = {
+      name: 'نادي اللياقة الذكي',
+      tagline: 'صحتك ولياقتك تبدأ بخطوة ذكية كل يوم',
+      address: 'سبها، ليبيا',
+      mapUrl: '',
+      appUrl: window.location.href
+    };
+
+    const DEFAULT_ADMIN = {
+      id: 'ADMIN-MAIN',
+      fullName: 'عمر الطابوني',
+      username: 'admin',
+      password: '1234',
+      role: 'أدمن رئيسي',
+      email: 'tabnet2020@gmail.com',
+      phone: '0923482662',
+      active: true,
+      protected: true
+    };
+
+    const TIPS = {
+      morning: [
+        'ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.',
+        'وجبة إفطار غنية بالبروتين والشوفان تمنحك طاقة ثابتة طوال تمرين الصباح.',
+        'الإحماء الجيد قبل رفع الأوزان يحمي المفاصل ويضاعف كفاءة التمرين.',
+        'التنفس العميق والمنتظم أثناء التمارين يقلل الإجهاد ويزيد القدرة على التحمل.'
+      ],
+      evening: [
+        'تمارين التهدئة والإطالة بعد تمرين المساء تساعد العضلات على الاستشفاء السريع.',
+        'احرص على شرب كمية كافية من الماء وتناول وجبة خفيفة غنية بالبروتين بعد التمرين.',
+        'النوم الجيد لمدة 7–8 ساعات هو جزء أساسي من بناء العضلات وحرق الدهون.',
+        'تجنب الكافيين قبل النوم بـ 5 ساعات للحفاظ على جودة الاستشفاء الليلي.'
+      ]
+    };
+
+    let state = {
+      club: JSON.parse(localStorage.getItem(KEYS.CLUB) || 'null') || { ...DEFAULT_CLUB },
+      members: JSON.parse(localStorage.getItem(KEYS.MEMBERS) || '[]'),
+      users: JSON.parse(localStorage.getItem(KEYS.USERS) || 'null') || [DEFAULT_ADMIN],
+      attendance: JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '[]'),
+      visitors: JSON.parse(localStorage.getItem(KEYS.VISITORS) || '[]'),
+      activeUser: JSON.parse(localStorage.getItem(KEYS.ACTIVE_USER) || 'null') || DEFAULT_ADMIN,
+      tipPeriod: new Date().getHours() < 15 ? 'morning' : 'evening',
+      tipIndex: 0,
+      sessionId: 'SES-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      scanner: null,
+      deferredPrompt: null
+    };
+
+    // Ensure main admin always exists
+    if (!state.users.some(u => u.id === 'ADMIN-MAIN')) {
+      state.users.unshift(DEFAULT_ADMIN);
+    }
+
+    function persist() {
+      localStorage.setItem(KEYS.CLUB, JSON.stringify(state.club));
+      localStorage.setItem(KEYS.MEMBERS, JSON.stringify(state.members));
+      localStorage.setItem(KEYS.USERS, JSON.stringify(state.users));
+      localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(state.attendance));
+      localStorage.setItem(KEYS.VISITORS, JSON.stringify(state.visitors));
+      localStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(state.activeUser));
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ==================== VISITOR LOGGING ====================
+    function getDeviceSummary() {
+      const ua = navigator.userAgent;
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+      const os = /Windows/i.test(ua) ? 'Windows' : /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iOS' : /Mac/i.test(ua) ? 'macOS' : 'Linux';
+      const browser = /Edg/i.test(ua) ? 'Edge' : /Chrome/i.test(ua) ? 'Chrome' : /Firefox/i.test(ua) ? 'Firefox' : /Safari/i.test(ua) ? 'Safari' : 'Browser';
+      return `${isMobile ? 'هاتف' : 'حاسوب'} • ${os} • ${browser}`;
+    }
+
+    function logVisitorAction(action) {
+      const entry = {
+        time: new Date().toLocaleString('ar-LY'),
+        sessionId: state.sessionId,
+        action,
+        user: state.activeUser ? `${state.activeUser.fullName} (${state.activeUser.role})` : 'زائر',
+        device: getDeviceSummary(),
+        screen: `${window.screen.width}x${window.screen.height}`
+      };
+      state.visitors.unshift(entry);
+      if (state.visitors.length > 1000) state.visitors.length = 1000;
+      persist();
+    }
+
+    // ==================== NAVIGATION ====================
+    function switchTab(tabName, btnEl) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById('tab-' + tabName);
+      if (target) target.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+      if (tabName !== 'barcode') stopCameraScanner();
+      logVisitorAction('الانتقال إلى قسم: ' + tabName);
+    }
+
+    // ==================== TIPS ====================
+    function renderTip() {
+      const list = TIPS[state.tipPeriod];
+      const isMorning = state.tipPeriod === 'morning';
+      document.getElementById('tipPeriodTitle').textContent = isMorning ? '☀️ تلميح الصباح الرياضي' : '🌙 تلميح المساء الرياضي';
+      document.getElementById('tipContent').textContent = list[state.tipIndex % list.length];
+    }
+    function toggleTipPeriod() {
+      state.tipPeriod = state.tipPeriod === 'morning' ? 'evening' : 'morning';
+      state.tipIndex = 0;
+      renderTip();
+    }
+    function nextTip() {
+      state.tipIndex++;
+      renderTip();
+    }
+
+    // ==================== CLUB BRAND, LOCATION & QR ====================
+    function getEffectiveMapLink() {
+      if (state.club.mapUrl && state.club.mapUrl.trim()) return state.club.mapUrl.trim();
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(state.club.address || 'سبها، ليبيا');
+    }
+
+    function getEmbedMapSrc() {
+      const q = encodeURIComponent(state.club.address || 'سبها، ليبيا');
+      return `https://maps.google.com/maps?q=${q}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+    }
+
+    function renderQR(containerId, text, size = 150) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(el, { text: text || 'https://example.com', width: size, height: size, colorDark: '#0f172a', colorLight: '#ffffff' });
+      }
+    }
+
+    function renderClubUI() {
+      document.title = state.club.name + ' - إدارة النادي الرياضي';
+      document.getElementById('headerClubName').textContent = state.club.name;
+      document.getElementById('headerClubTagline').textContent = state.club.tagline;
+      document.getElementById('dashAddressText').textContent = state.club.address;
+      document.getElementById('footerAddress').textContent = state.club.address;
+      document.getElementById('clubAddressInput').value = state.club.address;
+      document.getElementById('clubMapUrlInput').value = state.club.mapUrl || '';
+      const appUrl = state.club.appUrl || window.location.href;
+      document.getElementById('appUrlInput').value = appUrl;
+      document.getElementById('dashAppUrlLabel').textContent = appUrl;
+
+      const mapLink = getEffectiveMapLink();
+      renderQR('dashLocationQr', mapLink, 145);
+      renderQR('settingsLocationQr', mapLink, 155);
+      renderQR('dashAppQr', appUrl, 145);
+      renderQR('settingsAppQr', appUrl, 155);
+      document.getElementById('dashMapFrame').src = getEmbedMapSrc();
+
+      document.getElementById('activeUserBadge').textContent = `👤 ${state.activeUser.fullName} (${state.activeUser.role})`;
+    }
+
+    function openClubSettingsModal() {
+      document.getElementById('inputClubName').value = state.club.name;
+      document.getElementById('inputClubTagline').value = state.club.tagline;
+      document.getElementById('clubSettingsModal').classList.add('open');
+    }
+
+    function saveClubBrand() {
+      const name = document.getElementById('inputClubName').value.trim();
+      const tagline = document.getElementById('inputClubTagline').value.trim();
+      if (!name) return showToast('يرجى إدخال اسم النادي');
+      state.club.name = name;
+      state.club.tagline = tagline || DEFAULT_CLUB.tagline;
+      persist();
+      renderClubUI();
+      closeModal('clubSettingsModal');
+      logVisitorAction('تحديث اسم النادي إلى: ' + name);
+      showToast('تم تحديث اسم النادي بنجاح');
+    }
+
+    function saveClubLocation() {
+      state.club.address = document.getElementById('clubAddressInput').value.trim() || 'سبها، ليبيا';
+      state.club.mapUrl = document.getElementById('clubMapUrlInput').value.trim();
+      persist();
+      renderClubUI();
+      logVisitorAction('تحديث عنوان النادي والخريطة');
+      showToast('تم تحديث العنوان والباركود والخريطة بنجاح');
+    }
+
+    function saveAppUrl() {
+      const url = document.getElementById('appUrlInput').value.trim();
+      if (!url) return showToast('يرجى إدخال رابط التطبيق');
+      state.club.appUrl = url;
+      persist();
+      renderClubUI();
+      logVisitorAction('تحديث رابط تثبيت التطبيق');
+      showToast('تم تحديث باركود تثبيت التطبيق');
+    }
+
+    // ==================== REGISTRATION & MEMBERS ====================
+    function calcBMI() {
+      const w = parseFloat(document.getElementById('mWeight').value);
+      const h = parseFloat(document.getElementById('mHeight').value) / 100;
+      const out = document.getElementById('mBmiDisplay');
+      if (w > 0 && h > 0) {
+        const bmi = (w / (h * h)).toFixed(1);
+        let status = 'وزن مثالي';
+        if (bmi < 18.5) status = 'نحافة';
+        else if (bmi >= 25 && bmi < 30) status = 'زيادة وزن';
+        else if (bmi >= 30) status = 'سمنة';
+        out.value = `${bmi} (${status})`;
+      } else {
+        out.value = '';
+      }
+    }
+
+    function calcRemaining() {
+      const total = parseFloat(document.getElementById('mTotalFee').value) || 0;
+      const paid = parseFloat(document.getElementById('mPaidAmount').value) || 0;
+      document.getElementById('mRemaining').value = Math.max(0, total - paid).toFixed(2);
+    }
+
+    function toggleDiseaseFields() {
+      document.getElementById('diseaseBox').style.display =
+        document.getElementById('mHasDisease').value === 'نعم' ? 'block' : 'none';
+    }
+
+    function toggleInjuryFields() {
+      document.getElementById('injuryBox').style.display =
+        document.getElementById('mHasInjury').value === 'نعم' ? 'block' : 'none';
+    }
+
+    function resetRegistrationForm() {
+      document.getElementById('memberForm').reset();
+      document.getElementById('editMemberId').value = '';
+      document.getElementById('regFormTitle').textContent = '📝 استمارة تسجيل مشترك جديد';
+      document.getElementById('mPayDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mBmiDisplay').value = '';
+      toggleDiseaseFields();
+      toggleInjuryFields();
+    }
+
+    function saveMember(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editMemberId').value;
+      const checkedDiseases = Array.from(document.querySelectorAll('input[name="diseases"]:checked')).map(c => c.value);
+      const otherDisease = document.getElementById('mOtherDisease').value.trim();
+      if (otherDisease) checkedDiseases.push(otherDisease);
+
+      const totalFee = parseFloat(document.getElementById('mTotalFee').value) || 0;
+      const paidAmount = parseFloat(document.getElementById('mPaidAmount').value) || 0;
+
+      const memberData = {
+        id: editId || ('CLUB-' + (1000 + state.members.length + 1) + '-' + Math.floor(10 + Math.random() * 89)),
+        name: document.getElementById('mName').value.trim(),
+        age: document.getElementById('mAge').value,
+        phone: document.getElementById('mPhone').value.trim(),
+        weight: document.getElementById('mWeight').value,
+        height: document.getElementById('mHeight').value,
+        bmi: document.getElementById('mBmiDisplay').value,
+        hasDisease: document.getElementById('mHasDisease').value,
+        diseases: document.getElementById('mHasDisease').value === 'نعم' ? checkedDiseases : [],
+        hasInjury: document.getElementById('mHasInjury').value,
+        injuryLocation: document.getElementById('mHasInjury').value === 'نعم' ? document.getElementById('mInjuryLocation').value.trim() : '',
+        measurements: {
+          armRight: document.getElementById('mArmRight').value || '-',
+          armLeft: document.getElementById('mArmLeft').value || '-',
+          thighRight: document.getElementById('mThighRight').value || '-',
+          thighLeft: document.getElementById('mThighLeft').value || '-',
+          glutes: document.getElementById('mGlutes').value || '-',
+          waist: document.getElementById('mWaist').value || '-',
+          chest: document.getElementById('mChest').value || '-',
+          shoulders: document.getElementById('mShoulders').value || '-'
+        },
+        shift: document.getElementById('mShift').value,
+        coach: document.getElementById('mCoach').value.trim(),
+        totalFee,
+        paidAmount,
+        remaining: Math.max(0, totalFee - paidAmount),
+        paymentMethod: document.getElementById('mPaymentMethod').value,
+        payDate: document.getElementById('mPayDate').value || new Date().toISOString().split('T')[0],
+        notes: document.getElementById('mNotes').value.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      if (editId) {
+        const idx = state.members.findIndex(m => m.id === editId);
+        if (idx !== -1) state.members[idx] = memberData;
+        logVisitorAction('تعديل بيانات مشترك: ' + memberData.name);
+        showToast('تم تحديث بيانات المشترك بنجاح');
+      } else {
+        state.members.unshift(memberData);
+        logVisitorAction('تسجيل مشترك جديد: ' + memberData.name);
+        showToast('تم تسجيل المشترك وإصدار الباركود: ' + memberData.id);
+      }
+
+      persist();
+      renderAll();
+      resetRegistrationForm();
+      openMemberProfile(memberData.id);
+    }
+
+    function editMember(id) {
+      const m = state.members.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('editMemberId').value = m.id;
+      document.getElementById('regFormTitle').textContent = '✏️ تعديل بيانات المشترك: ' + m.name;
+      document.getElementById('mName').value = m.name;
+      document.getElementById('mAge').value = m.age;
+      document.getElementById('mPhone').value = m.phone;
+      document.getElementById('mWeight').value = m.weight;
+      document.getElementById('mHeight').value = m.height;
+      calcBMI();
+      document.getElementById('mHasDisease').value = m.hasDisease || 'لا';
+      toggleDiseaseFields();
+      document.querySelectorAll('input[name="diseases"]').forEach(c => {
+        c.checked = (m.diseases || []).includes(c.value);
+      });
+      document.getElementById('mHasInjury').value = m.hasInjury || 'لا';
+      toggleInjuryFields();
+      document.getElementById('mInjuryLocation').value = m.injuryLocation || '';
+      const ms = m.measurements || {};
+      document.getElementById('mArmRight').value = ms.armRight !== '-' ? ms.armRight : '';
+      document.getElementById('mArmLeft').value = ms.armLeft !== '-' ? ms.armLeft : '';
+      document.getElementById('mThighRight').value = ms.thighRight !== '-' ? ms.thighRight : '';
+      document.getElementById('mThighLeft').value = ms.thighLeft !== '-' ? ms.thighLeft : '';
+      document.getElementById('mGlutes').value = ms.glutes !== '-' ? ms.glutes : '';
+      document.getElementById('mWaist').value = ms.waist !== '-' ? ms.waist : '';
+      document.getElementById('mChest').value = ms.chest !== '-' ? ms.chest : '';
+      document.getElementById('mShoulders').value = ms.shoulders !== '-' ? ms.shoulders : '';
+      document.getElementById('mShift').value = m.shift;
+      document.getElementById('mCoach').value = m.coach;
+      document.getElementById('mTotalFee').value = m.totalFee;
+      document.getElementById('mPaidAmount').value = m.paidAmount;
+      calcRemaining();
+      document.getElementById('mPaymentMethod').value = m.paymentMethod;
+      document.getElementById('mPayDate').value = m.payDate;
+      document.getElementById('mNotes').value = m.notes || '';
+      switchTab('register', document.querySelector('[data-tab=register]'));
+    }
+
+    function deleteMember(id) {
+      if (!confirm('هل أنت متأكد من حذف هذا المشترك نهائياً؟')) return;
+      const m = state.members.find(x => x.id === id);
+      state.members = state.members.filter(x => x.id !== id);
+      persist();
+      renderAll();
+      logVisitorAction('حذف مشترك: ' + (m ? m.name : id));
+      showToast('تم حذف المشترك');
+    }
+
+    function renderMembersTable() {
+      const q = (document.getElementById('searchMember').value || '').toLowerCase();
+      const shift = document.getElementById('filterShift').value;
+      const pay = document.getElementById('filterPayment').value;
+
+      const filtered = state.members.filter(m => {
+        const matchQ = m.name.toLowerCase().includes(q) || m.phone.includes(q) || m.id.toLowerCase().includes(q);
+        const matchShift = !shift || m.shift === shift;
+        const matchPay = !pay || (pay === 'paid' ? m.remaining <= 0 : m.remaining > 0);
+        return matchQ && matchShift && matchPay;
+      });
+
+      const tbody = document.getElementById('membersTbody');
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#64748b;padding:24px;">لا يوجد مشتركون مطابقون للبحث حالياً.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(m => `
+        <tr>
+          <td><strong>${m.id}</strong></td>
+          <td>${m.name}</td>
+          <td>${m.age}</td>
+          <td>${m.phone}</td>
+          <td><span class="badge badge-teal">${m.shift}</span></td>
+          <td>${m.coach}</td>
+          <td>${m.paidAmount} / ${m.totalFee} د.ل</td>
+          <td>${m.remaining <= 0 ? '<span class="badge badge-green">خالص</span>' : `<span class="badge badge-amber">متبقي ${m.remaining} د.ل</span>`}</td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="openMemberProfile('${m.id}')">👁️</button>
+            <button class="btn btn-secondary btn-sm" onclick="editMember('${m.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openMemberProfile(id) {
+      const m = state.members.find(x => x.id === id);
+      if (!m) return;
+      const ms = m.measurements || {};
+      const body = document.getElementById('memberProfileBody');
+      body.innerHTML = `
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <h3 style="margin:0 0 8px;color:#0f766e;">${m.name}</h3>
+            <p style="margin:4px 0;"><strong>الباركود:</strong> ${m.id}</p>
+            <p style="margin:4px 0;"><strong>العمر:</strong> ${m.age} سنة | <strong>الهاتف:</strong> ${m.phone}</p>
+            <p style="margin:4px 0;"><strong>الوزن:</strong> ${m.weight} كجم | <strong>الطول:</strong> ${m.height} سم | <strong>BMI:</strong> ${m.bmi}</p>
+            <p style="margin:4px 0;"><strong>الفترة:</strong> ${m.shift} | <strong>المدربة:</strong> ${m.coach}</p>
+            <p style="margin:4px 0;"><strong>الأمراض:</strong> ${m.hasDisease === 'نعم' ? (m.diseases.join('، ') || 'نعم') : 'لا يوجد'}</p>
+            <p style="margin:4px 0;"><strong>الإصابات:</strong> ${m.hasInjury === 'نعم' ? (m.injuryLocation || 'نعم') : 'لا يوجد'}</p>
+          </div>
+          <div class="qr-box">
+            <div id="profileMemberQr"></div>
+            <small style="margin-top:6px;font-weight:700;">${m.id}</small>
+          </div>
+        </div>
+        <div class="form-section-title">قياسات الجسم (سم)</div>
+        <div class="grid-4" style="font-size:0.88rem;">
+          <div>الذراع اليمنى: <strong>${ms.armRight}</strong></div>
+          <div>الذراع اليسرى: <strong>${ms.armLeft}</strong></div>
+          <div>الفخذ الأيمن: <strong>${ms.thighRight}</strong></div>
+          <div>الفخذ الأيسر: <strong>${ms.thighLeft}</strong></div>
+          <div>المؤخرة: <strong>${ms.glutes}</strong></div>
+          <div>الخصر: <strong>${ms.waist}</strong></div>
+          <div>الصدر: <strong>${ms.chest}</strong></div>
+          <div>الأكتاف: <strong>${ms.shoulders}</strong></div>
+        </div>
+        <div class="form-section-title">البيانات المالية</div>
+        <p style="margin:6px 0;">الإجمالي: <strong>${m.totalFee} د.ل</strong> | المدفوع: <strong>${m.paidAmount} د.ل</strong> | المتبقي: <strong>${m.remaining} د.ل</strong> | طريقة الدفع: <strong>${m.paymentMethod}</strong> (${m.payDate})</p>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="printMemberCard('${m.id}')">🖨️ طباعة بطاقة العضوية (A4)</button>
+          <button class="btn btn-secondary" onclick="closeModal('memberProfileModal')">إغلاق</button>
+        </div>
+      `;
+      document.getElementById('memberProfileModal').classList.add('open');
+      setTimeout(() => renderQR('profileMemberQr', m.id, 130), 60);
+    }
+
+    // ==================== PRINT A4 CARD & POSTER ====================
+    function printMemberCard(id) {
+      const m = state.members.find(x => x.id === id);
+      if (!m) return;
+      const area = document.getElementById('printArea');
+      area.innerHTML = `
+        <div style="border:3px solid #0f766e;border-radius:18px;padding:24px;max-width:650px;margin:0 auto;font-family:Cairo,sans-serif;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #ccfbf1;padding-bottom:14px;margin-bottom:16px;">
+            <div>
+              <h1 style="margin:0;color:#0f766e;">${state.club.name}</h1>
+              <p style="margin:4px 0 0;color:#475569;">بطاقة عضوية رسمية</p>
+            </div>
+            <div id="printCardQr"></div>
+          </div>
+          <p><strong>الاسم:</strong> ${m.name}</p>
+          <p><strong>رقم العضوية:</strong> ${m.id}</p>
+          <p><strong>الهاتف:</strong> ${m.phone} | <strong>العمر:</strong> ${m.age} سنة</p>
+          <p><strong>فترة التمارين:</strong> ${m.shift} | <strong>المدربة:</strong> ${m.coach}</p>
+          <p><strong>تاريخ التسجيل:</strong> ${m.payDate} | <strong>المدفوع:</strong> ${m.paidAmount} د.ل (المتبقي: ${m.remaining} د.ل)</p>
+          <hr style="margin:18px 0;border:none;border-top:1px dashed #cbd5e1;" />
+          <p style="font-size:0.85rem;color:#475569;margin:0;">العنوان: ${state.club.address} | إدارة النظام: عمر الطابوني (0923482662)</p>
+        </div>
+      `;
+      renderQR('printCardQr', m.id, 110);
+      setTimeout(() => window.print(), 250);
+    }
+
+    function printInstallPoster() {
+      const appUrl = state.club.appUrl || window.location.href;
+      const area = document.getElementById('printArea');
+      area.innerHTML = `
+        <div style="text-align:center;border:4px solid #0f766e;border-radius:24px;padding:40px 28px;font-family:Cairo,sans-serif;">
+          <h1 style="color:#0f766e;font-size:2.2rem;margin:0 0 10px;">${state.club.name}</h1>
+          <p style="font-size:1.2rem;color:#334155;margin:0 0 28px;">امسح الباركود بكاميرا هاتفك لتثبيت التطبيق الرسمي للنادي</p>
+          <div id="printPosterQr" style="display:inline-block;padding:18px;border:2px dashed #14b8a6;border-radius:16px;"></div>
+          <p style="margin-top:22px;font-size:1rem;color:#0f766e;font-weight:700;word-break:break-all;">${appUrl}</p>
+          <hr style="margin:28px 0;border:none;border-top:1px solid #cbd5e1;" />
+          <p style="font-size:1rem;color:#1e293b;"><strong>العنوان:</strong> ${state.club.address}</p>
+          <p style="font-size:0.95rem;color:#475569;">تطوير وإدارة النظام: عمر الطابوني | الهاتف: 0923482662 | tabnet2020@gmail.com</p>
+        </div>
+      `;
+      renderQR('printPosterQr', appUrl, 240);
+      setTimeout(() => window.print(), 250);
+    }
+
+    // ==================== BARCODE CHECK-IN & ATTENDANCE ====================
+    function checkInByBarcode(codeOverride) {
+      const code = (codeOverride || document.getElementById('manualBarcodeInput').value || '').trim();
+      if (!code) return showToast('يرجى إدخال أو مسح رمز الباركود');
+      const m = state.members.find(x => x.id.toLowerCase() === code.toLowerCase());
+      const box = document.getElementById('scanResultBox');
+      if (!m) {
+        box.innerHTML = `<div style="color:#dc2626;font-weight:800;">❌ لم يتم العثور على مشترك بهذا الباركود: ${code}</div>`;
+        return;
+      }
+
+      const record = {
+        time: new Date().toLocaleString('ar-LY'),
+        dateKey: new Date().toISOString().split('T')[0],
+        memberId: m.id,
+        memberName: m.name,
+        shift: m.shift,
+        coach: m.coach
+      };
+      state.attendance.unshift(record);
+      persist();
+      renderStats();
+      renderAttendanceTable();
+      logVisitorAction('تسجيل حضور بالباركود: ' + m.name);
+
+      box.innerHTML = `
+        <div style="text-align:right;background:#f0fdfa;padding:16px;border-radius:12px;border:1.5px solid #99f6e4;">
+          <h3 style="margin:0 0 8px;color:#059669;">✅ تم تسجيل الحضور بنجاح</h3>
+          <p style="margin:4px 0;"><strong>الاسم:</strong> ${m.name} (${m.id})</p>
+          <p style="margin:4px 0;"><strong>الفترة:</strong> ${m.shift} | <strong>المدربة:</strong> ${m.coach}</p>
+          <p style="margin:4px 0;"><strong>الحالة المالية:</strong> ${m.remaining <= 0 ? 'خالص الدفع' : 'متبقي ' + m.remaining + ' د.ل'}</p>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="openMemberProfile('${m.id}')">عرض الملف الكامل</button>
+        </div>
+      `;
+      document.getElementById('manualBarcodeInput').value = '';
+      showToast('تم تسجيل حضور: ' + m.name);
+    }
+
+    function startCameraScanner() {
+      if (typeof Html5Qrcode === 'undefined') return showToast('مكتبة الكاميرا غير متوفرة حالياً');
+      stopCameraScanner();
+      state.scanner = new Html5Qrcode('qrReader');
+      state.scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          stopCameraScanner();
+          checkInByBarcode(decodedText);
+        }
+      ).catch(() => showToast('تعذر فتح الكاميرا — تأكد من منح الإذن وتشغيل الموقع عبر HTTPS'));
+    }
+
+    function stopCameraScanner() {
+      if (state.scanner) {
+        state.scanner.stop().catch(() => {}).finally(() => { state.scanner = null; });
+      }
+    }
+
+    function renderAttendanceTable() {
+      const tbody = document.getElementById('attendanceTbody');
+      if (!state.attendance.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:18px;">لا توجد سجلات حضور بعد.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = state.attendance.slice(0, 100).map(a => `
+        <tr>
+          <td>${a.time}</td>
+          <td><strong>${a.memberId}</strong></td>
+          <td>${a.memberName}</td>
+          <td><span class="badge badge-teal">${a.shift}</span></td>
+          <td>${a.coach}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ==================== USERS MANAGEMENT ====================
+    function addUser(e) {
+      e.preventDefault();
+      const username = document.getElementById('uUsername').value.trim();
+      if (state.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        return showToast('اسم المستخدم موجود مسبقاً');
+      }
+      const user = {
+        id: 'USR-' + Date.now(),
+        fullName: document.getElementById('uFullName').value.trim(),
+        username,
+        password: document.getElementById('uPassword').value,
+        role: document.getElementById('uRole').value,
+        email: '',
+        phone: '',
+        active: true,
+        protected: false
+      };
+      state.users.push(user);
+      persist();
+      renderUsersTable();
+      document.getElementById('userForm').reset();
+      logVisitorAction('إضافة مستخدم جديد: ' + user.fullName);
+      showToast('تمت إضافة المستخدم بنجاح');
+    }
+
+    function toggleUserStatus(id) {
+      const u = state.users.find(x => x.id === id);
+      if (!u || u.protected) return;
+      u.active = !u.active;
+      persist();
+      renderUsersTable();
+    }
+
+    function deleteUser(id) {
+      const u = state.users.find(x => x.id === id);
+      if (!u || u.protected) return showToast('لا يمكن حذف الأدمن الرئيسي للنظام');
+      if (!confirm('حذف المستخدم ' + u.fullName + '؟')) return;
+      state.users = state.users.filter(x => x.id !== id);
+      persist();
+      renderUsersTable();
+      logVisitorAction('حذف مستخدم: ' + u.fullName);
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTbody');
+      tbody.innerHTML = state.users.map(u => `
+        <tr>
+          <td><strong>${u.fullName}</strong> ${u.protected ? '<span class="badge badge-teal">مسؤول النظام</span>' : ''}</td>
+          <td>${u.username}</td>
+          <td>${u.role}</td>
+          <td>${u.phone ? u.phone + ' • ' + u.email : '—'}</td>
+          <td>${u.active ? '<span class="badge badge-green">نشط</span>' : '<span class="badge badge-red">معطل</span>'}</td>
+          <td>
+            ${u.protected ? '<span style="color:#64748b;font-size:0.8rem;">محمي</span>' : `
+              <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}')">${u.active ? 'تعطيل' : 'تفعيل'}</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">حذف</button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginModal').classList.add('open');
+    }
+
+    function performLogin() {
+      const un = document.getElementById('loginUsername').value.trim();
+      const pw = document.getElementById('loginPassword').value;
+      const found = state.users.find(u => u.username === un && u.password === pw);
+      if (!found) return showToast('بيانات الدخول غير صحيحة');
+      if (!found.active) return showToast('هذا الحساب معطل');
+      state.activeUser = found;
+      persist();
+      renderClubUI();
+      closeModal('loginModal');
+      logVisitorAction('تسجيل دخول المستخدم: ' + found.fullName);
+      showToast('مرحباً بك، ' + found.fullName);
+    }
+
+    // ==================== EXPORT EXCEL & CSV ====================
+    function buildMemberExportRows() {
+      return state.members.map(m => ({
+        'اسم النادي': state.club.name,
+        'الباركود': m.id,
+        'الاسم الكامل': m.name,
+        'العمر': m.age,
+        'الهاتف': m.phone,
+        'الوزن (كجم)': m.weight,
+        'الطول (سم)': m.height,
+        'BMI': m.bmi,
+        'يعاني من أمراض': m.hasDisease,
+        'تفاصيل الأمراض': (m.diseases || []).join('، '),
+        'إصابات سابقة': m.hasInjury,
+        'مكان الإصابة': m.injuryLocation || '',
+        'الذراع اليمنى': m.measurements?.armRight || '',
+        'الذراع اليسرى': m.measurements?.armLeft || '',
+        'الفخذ الأيمن': m.measurements?.thighRight || '',
+        'الفخذ الأيسر': m.measurements?.thighLeft || '',
+        'المؤخرة': m.measurements?.glutes || '',
+        'الخصر': m.measurements?.waist || '',
+        'الصدر': m.measurements?.chest || '',
+        'الأكتاف': m.measurements?.shoulders || '',
+        'فترة التمارين': m.shift,
+        'اسم المدربة': m.coach,
+        'قيمة الاشتراك': m.totalFee,
+        'المدفوع': m.paidAmount,
+        'المتبقي': m.remaining,
+        'طريقة الدفع': m.paymentMethod,
+        'تاريخ الدفع': m.payDate,
+        'ملاحظات': m.notes || ''
+      }));
+    }
+
+    function exportMembersExcel() {
+      if (!state.members.length) return showToast('لا يوجد مشتركون للتصدير');
+      const rows = buildMemberExportRows();
+      if (typeof XLSX !== 'undefined') {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'المشتركون');
+        XLSX.writeFile(wb, `سجل_المشتركين_${new Date().toISOString().split('T')[0]}.xlsx`);
+        logVisitorAction('تصدير سجل المشتركين إلى Excel');
+        showToast('تم تصدير ملف Excel بنجاح');
+      } else {
+        exportMembersCSV();
+      }
+    }
+
+    function exportMembersCSV() {
+      if (!state.members.length) return showToast('لا يوجد مشتركون للتصدير');
+      const rows = buildMemberExportRows();
+      const headers = Object.keys(rows[0]);
+      const csv = [headers.join(','), ...rows.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `سجل_المشتركين_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      logVisitorAction('تصدير سجل المشتركين إلى CSV');
+    }
+
+    // ==================== VISITOR LOG MODAL ====================
+    function openVisitorLogPrompt() {
+      document.getElementById('visitorPasswordInput').value = '';
+      document.getElementById('visitorAuthGate').style.display = 'block';
+      document.getElementById('visitorLogContent').style.display = 'none';
+      document.getElementById('visitorModal').classList.add('open');
+    }
+
+    function unlockVisitorLog() {
+      const val = document.getElementById('visitorPasswordInput').value;
+      if (val !== VISITOR_PASS) return showToast('❌ كلمة المرور غير صحيحة');
+      document.getElementById('visitorAuthGate').style.display = 'none';
+      document.getElementById('visitorLogContent').style.display = 'block';
+      renderVisitorTable();
+    }
+
+    function closeVisitorLog() {
+      document.getElementById('visitorAuthGate').style.display = 'block';
+      document.getElementById('visitorLogContent').style.display = 'none';
+      closeModal('visitorModal');
+    }
+
+    function renderVisitorTable() {
+      const q = (document.getElementById('visitorSearch').value || '').toLowerCase();
+      const filtered = state.visitors.filter(v =>
+        v.action.toLowerCase().includes(q) ||
+        v.user.toLowerCase().includes(q) ||
+        v.device.toLowerCase().includes(q) ||
+        v.sessionId.toLowerCase().includes(q)
+      );
+      document.getElementById('vTotalEvents').textContent = state.visitors.length;
+      document.getElementById('vTotalSessions').textContent = new Set(state.visitors.map(v => v.sessionId)).size;
+      document.getElementById('visitorTbody').innerHTML = filtered.map(v => `
+        <tr>
+          <td>${v.time}</td>
+          <td><code>${v.sessionId}</code></td>
+          <td>${v.action}</td>
+          <td>${v.user}</td>
+          <td>${v.device}</td>
+          <td>${v.screen}</td>
+        </tr>
+      `).join('');
+    }
+
+    function exportVisitorLogExcel() {
+      if (!state.visitors.length) return showToast('السجل فارغ');
+      if (typeof XLSX !== 'undefined') {
+        const ws = XLSX.utils.json_to_sheet(state.visitors);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'سجل_الزوار');
+        XLSX.writeFile(wb, `سجل_الزوار_${new Date().toISOString().split('T')[0]}.xlsx`);
+      }
+    }
+
+    function clearVisitorLog() {
+      if (!confirm('هل تريد مسح سجل الزوار بالكامل؟')) return;
+      state.visitors = [];
+      persist();
+      renderVisitorTable();
+      showToast('تم مسح سجل الزوار');
+    }
+
+    // ==================== STATS & HELPERS ====================
+    function renderStats() {
+      const todayKey = new Date().toISOString().split('T')[0];
+      const todayCount = state.attendance.filter(a => a.dateKey === todayKey).length;
+      const totalPaid = state.members.reduce((s, m) => s + (Number(m.paidAmount) || 0), 0);
+      const totalRem = state.members.reduce((s, m) => s + (Number(m.remaining) || 0), 0);
+
+      document.getElementById('statTotalMembers').textContent = state.members.length;
+      document.getElementById('statTodayAttendance').textContent = todayCount;
+      document.getElementById('statTotalPaid').textContent = totalPaid.toFixed(0) + ' د.ل';
+      document.getElementById('statTotalRemaining').textContent = totalRem.toFixed(0) + ' د.ل';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function renderAll() {
+      renderClubUI();
+      renderTip();
+      renderStats();
+      renderMembersTable();
+      renderAttendanceTable();
+      renderUsersTable();
+    }
+
+    // ==================== PWA INSTALL & SERVICE WORKER ====================
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      state.deferredPrompt = e;
+      document.getElementById('installPwaBtn').style.display = 'inline-flex';
+    });
+
+    function triggerPwaInstall() {
+      if (!state.deferredPrompt) return showToast('يمكنك التثبيت من قائمة المتصفح (إضافة إلى الشاشة الرئيسية)');
+      state.deferredPrompt.prompt();
+      state.deferredPrompt.userChoice.then(() => {
+        state.deferredPrompt = null;
+        document.getElementById('installPwaBtn').style.display = 'none';
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // ==================== INIT ====================
+    document.getElementById('mPayDate').value = new Date().toISOString().split('T')[0];
+    logVisitorAction('زيارة جديدة للتطبيق');
+    renderAll();
+  </script>
+</body>
+</html>

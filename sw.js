@@ -1,10 +1,10 @@
-const CACHE_NAME = 'smart-fitness-club-v5';
+const CACHE_NAME = 'smart-fitness-club-v6';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.svg',
-  './icon-512.svg'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,7 +26,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = event.request.url;
-  // Never cache IP check APIs
   if (url.includes('ipify.org') || url.includes('ipwho.is')) return;
   event.respondWith(
     caches.match(event.request).then((cached) => {

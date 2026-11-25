@@ -7,8 +7,12 @@
   <meta name="description" content="نظام إدارة النادي الرياضي - تسجيل المشتركين، القياسات، الباركود، والتقارير" />
   <title>نادي اللياقة الذكي - إدارة النادي الرياضي</title>
   <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="./icon-192.svg" />
-  <link rel="apple-touch-icon" href="./icon-192.svg" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="نادي اللياقة" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <!-- Arabic Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -630,6 +634,68 @@
       background: #0f172a;
     }
 
+  
+    /* Public Club Welcome Interface (Mobile & Guest View) */
+    #publicHomeView {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+    #publicHomeView.active { display: flex; }
+    .public-hero {
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      color: #fff;
+      padding: 28px 20px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 18px;
+      box-shadow: 0 12px 30px rgba(15, 118, 110, 0.22);
+    }
+    .public-hero .hero-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 12px;
+    }
+    .public-hero h1 { margin: 0 0 6px; font-size: 1.55rem; font-weight: 800; }
+    .public-hero p { margin: 0 0 18px; opacity: 0.92; font-size: 0.95rem; }
+    .public-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .install-smart-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+      color: #fff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+    }
+    .install-smart-banner h3 { margin: 0 0 4px; font-size: 1rem; color: #5eead4; }
+    .install-smart-banner p { margin: 0; font-size: 0.85rem; opacity: 0.92; }
+    .ios-steps-box {
+      background: #f0fdfa;
+      border: 1.5px solid #99f6e4;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: right;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: #0f172a;
+    }
+
   </style>
 </head>
 <body>
@@ -675,6 +741,49 @@
         <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">🔐 دخول للنظام</button>
       </form>
     </div>
+  </div>
+
+  <!-- ==================== PUBLIC CLUB HOME VIEW (NO INTERNAL DETAILS) ==================== -->
+  <div id="publicHomeView">
+    <main class="container" style="max-width:860px;">
+      <!-- Smart Direct Install Banner (Android & iOS) -->
+      <div class="install-smart-banner" id="smartInstallBanner">
+        <div>
+          <h3>📲 تثبيت تطبيق النادي على هاتفك</h3>
+          <p id="smartInstallDesc">ثبّت التطبيق الآن على شاشتك الرئيسية للوصول السريع (أندرويد و آيفون).</p>
+        </div>
+        <button class="btn btn-success" id="smartInstallBtn" onclick="handleSmartInstall()">⬇️ تثبيت التطبيق الآن</button>
+      </div>
+
+      <!-- Club Hero Card -->
+      <div class="public-hero">
+        <div class="hero-logo">🏋️</div>
+        <h1 id="pubClubName">نادي اللياقة الذكي</h1>
+        <p id="pubClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
+        <div class="public-actions">
+          <button class="btn" style="background:#fff;color:#0f766e;padding:12px 24px;font-size:0.98rem;" onclick="openLoginModal()">🔐 تسجيل الدخول للاستخدام</button>
+          <button class="btn" style="background:rgba(255,255,255,0.16);color:#fff;border:1px solid rgba(255,255,255,0.35);" onclick="openActivationFromPublic()">🔑 تفعيل الجهاز (للإدارة)</button>
+        </div>
+      </div>
+
+      <!-- Public Daily Tip -->
+      <div class="tip-banner">
+        <div class="tip-text">
+          <h3 id="pubTipTitle">☀️ تلميح الصباح الرياضي</h3>
+          <p id="pubTipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
+      </div>
+
+      <!-- Public Club Location & Map Only (No internal data) -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📍 عنوان النادي والموقع على الخريطة</h2>
+        </div>
+        <p id="pubAddressText" style="margin:0 0 10px;font-weight:700;color:#334155;">سبها، ليبيا</p>
+        <iframe id="pubMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </main>
   </div>
 
   <!-- ==================== MAIN APPLICATION SHELL ==================== -->
@@ -1442,6 +1551,20 @@
     </div>
   </div>
 
+  <!-- MODAL: Direct Install Guide (iOS Safari & Android Fallback) -->
+  <div class="modal-backdrop" id="installGuideModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title" id="installGuideTitle">📲 تثبيت التطبيق على هاتفك</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('installGuideModal')">✖</button>
+      </div>
+      <div id="installGuideBody" class="ios-steps-box"></div>
+      <div style="margin-top:14px;text-align:left;">
+        <button class="btn btn-primary" onclick="closeModal('installGuideModal')">حسناً، فهمت</button>
+      </div>
+    </div>
+  </div>
+
   <!-- PRINT AREA (A4) -->
   <div id="printArea"></div>
 
@@ -1616,16 +1739,77 @@
       return null;
     }
 
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth <= 820;
+    }
+
+    function isIOSDevice() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isStandaloneMode() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function openActivationFromPublic() {
+      document.getElementById('publicHomeView').classList.remove('active');
+      document.getElementById('activationGate').classList.add('active');
+    }
+
+    function handleSmartInstall() {
+      if (isStandaloneMode()) {
+        return showToast('✅ التطبيق مثبّت بالفعل على جهازك');
+      }
+      if (state.deferredPrompt) {
+        state.deferredPrompt.prompt();
+        state.deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            showToast('✅ جاري تثبيت التطبيق على هاتفك...');
+            const b = document.getElementById('smartInstallBanner');
+            if (b) b.style.display = 'none';
+          }
+          state.deferredPrompt = null;
+          document.getElementById('installPwaBtn').style.display = 'none';
+        });
+        return;
+      }
+      // Show clear OS-specific direct instructions (iOS Safari or Android Chrome)
+      const title = document.getElementById('installGuideTitle');
+      const body = document.getElementById('installGuideBody');
+      if (isIOSDevice()) {
+        title.textContent = '📲 تثبيت التطبيق على الآيفون (iOS)';
+        body.innerHTML = `
+          <div>1️⃣ افتح الرابط في متصفح <strong>Safari</strong>.</div>
+          <div>2️⃣ اضغط على زر <strong>المشاركة (⬆️)</strong> في أسفل الشاشة.</div>
+          <div>3️⃣ اختر <strong>إضافة إلى الشاشة الرئيسية (Add to Home Screen)</strong> ثم اضغط <strong>إضافة</strong>.</div>
+        `;
+      } else {
+        title.textContent = '📲 تثبيت التطبيق على الأندرويد (Android)';
+        body.innerHTML = `
+          <div>1️⃣ اضغط على قائمة المتصفح <strong>(⋮)</strong> في أعلى الشاشة.</div>
+          <div>2️⃣ اختر <strong>تثبيت التطبيق (Install App)</strong> أو <strong>إضافة إلى الشاشة الرئيسية</strong>.</div>
+          <div>3️⃣ اضغط <strong>تثبيت</strong> وسيظهر التطبيق فوراً بين تطبيقاتك.</div>
+        `;
+      }
+      document.getElementById('installGuideModal').classList.add('open');
+    }
+
     async function enforceSecurityGates() {
       const activationGate = document.getElementById('activationGate');
       const loginGate = document.getElementById('loginGate');
+      const publicHome = document.getElementById('publicHomeView');
       const appShell = document.getElementById('appShell');
       const ipPill = document.getElementById('detectedIpPill');
       const actErr = document.getElementById('activationError');
 
       activationGate.classList.remove('active');
       loginGate.classList.remove('active');
+      publicHome.classList.remove('active');
       appShell.classList.remove('unlocked');
+
+      // Hide install banner if already installed as standalone app
+      const smartBanner = document.getElementById('smartInstallBanner');
+      if (smartBanner) smartBanner.style.display = isStandaloneMode() ? 'none' : 'flex';
 
       state.currentIp = await fetchPublicIp();
       if (state.currentIp) {
@@ -1634,17 +1818,35 @@
         ipPill.textContent = '⚠️ تعذر الاتصال بالإنترنت للتحقق من IP';
       }
 
-      // Step 1: Check License & IP Binding
       const lic = state.license;
       const isValidStoredHash = lic && VALID_KEY_HASHES.includes(lic.keyHash);
+      const ipMatches = !state.currentIp || !lic?.boundIp || lic.boundIp === state.currentIp;
 
+      // Mobile Phone Mode: Show Public Club Home Interface (no internal details) until user logs in!
+      if (isMobileDevice() && !state.activeUser) {
+        renderPublicHome();
+        publicHome.classList.add('active');
+        // If opened via QR code (?install=1) on iOS, gently guide installation
+        if (new URLSearchParams(window.location.search).get('install') === '1' && !isStandaloneMode() && isIOSDevice()) {
+          setTimeout(() => handleSmartInstall(), 700);
+        }
+        return;
+      }
+
+      // If logged in on mobile (Member, Coach, or Admin), unlock appShell directly
+      if (isMobileDevice() && state.activeUser) {
+        appShell.classList.add('unlocked');
+        renderAll();
+        return;
+      }
+
+      // Desktop Mode: Enforce Serial & IP Activation
       if (!lic || !isValidStoredHash) {
         activationGate.classList.add('active');
         return;
       }
 
-      // Verify IP match when online
-      if (state.currentIp && lic.boundIp && lic.boundIp !== state.currentIp) {
+      if (!ipMatches) {
         actErr.style.display = 'block';
         actErr.innerHTML = `⛔ تم رصد تغيير في عنوان IP الجهاز!<br>العنوان المفعّل: <strong>${lic.boundIp}</strong><br>العنوان الحالي: <strong>${state.currentIp}</strong><br>يرجى إعادة التفعيل بسيريال صالح لهذا الجهاز.`;
         activationGate.classList.add('active');
@@ -1652,15 +1854,23 @@
         return;
       }
 
-      // Step 2: Direct Entry after Serial Activation (No mandatory username/password)
       if (!state.activeUser) {
         state.activeUser = DEFAULT_ADMIN;
         persist();
       }
 
-      // Step 3: Unlock App directly
       appShell.classList.add('unlocked');
       renderAll();
+    }
+
+    function renderPublicHome() {
+      document.title = state.club.name;
+      document.getElementById('pubClubName').textContent = state.club.name;
+      document.getElementById('pubClubTagline').textContent = state.club.tagline;
+      document.getElementById('pubAddressText').textContent = state.club.address;
+      document.getElementById('footerAddress').textContent = state.club.address;
+      document.getElementById('pubMapFrame').src = getEmbedMapSrc();
+      renderTip();
     }
 
     async function activateLicense(e) {
@@ -1789,8 +1999,14 @@
     function renderTip() {
       const list = TIPS[state.tipPeriod];
       const isMorning = state.tipPeriod === 'morning';
-      document.getElementById('tipPeriodTitle').textContent = isMorning ? '☀️ تلميح الصباح الرياضي' : '🌙 تلميح المساء الرياضي';
-      document.getElementById('tipContent').textContent = list[state.tipIndex % list.length];
+      const titleText = isMorning ? '☀️ تلميح الصباح الرياضي' : '🌙 تلميح المساء الرياضي';
+      const bodyText = list[state.tipIndex % list.length];
+      document.getElementById('tipPeriodTitle').textContent = titleText;
+      document.getElementById('tipContent').textContent = bodyText;
+      const pt = document.getElementById('pubTipTitle');
+      const pc = document.getElementById('pubTipContent');
+      if (pt) pt.textContent = titleText;
+      if (pc) pc.textContent = bodyText;
     }
     function toggleTipPeriod() {
       state.tipPeriod = state.tipPeriod === 'morning' ? 'evening' : 'morning';
@@ -1837,8 +2053,9 @@
       const mapLink = getEffectiveMapLink();
       renderQR('dashLocationQr', mapLink, 145);
       renderQR('settingsLocationQr', mapLink, 155);
-      renderQR('dashAppQr', appUrl, 145);
-      renderQR('settingsAppQr', appUrl, 155);
+      const qrInstallUrl = appUrl.includes('?') ? appUrl + '&install=1' : appUrl + '?install=1';
+      renderQR('dashAppQr', qrInstallUrl, 145);
+      renderQR('settingsAppQr', qrInstallUrl, 155);
       document.getElementById('dashMapFrame').src = getEmbedMapSrc();
 
       // Top bar badge: hide personal name for Main Admin and show only "الأدمن الرئيسي"
@@ -2479,6 +2696,8 @@
       if (!found.active) return showToast('هذا الحساب معطل');
       state.activeUser = found;
       persist();
+      document.getElementById('publicHomeView').classList.remove('active');
+      document.getElementById('appShell').classList.add('unlocked');
       renderAll();
       closeModal('loginModal');
       logVisitorAction('تبديل المستخدم إلى: ' + (found.protected ? 'الأدمن الرئيسي' : `${found.fullName} (${found.role})`));
@@ -2950,6 +3169,8 @@
       e.preventDefault();
       state.deferredPrompt = e;
       document.getElementById('installPwaBtn').style.display = 'inline-flex';
+      const btn = document.getElementById('smartInstallBtn');
+      if (btn) btn.textContent = '⬇️ تثبيت التطبيق الآن (ضغطة واحدة)';
     });
 
     function triggerPwaInstall() {

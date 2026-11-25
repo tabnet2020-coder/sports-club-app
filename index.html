@@ -563,6 +563,73 @@
       body { padding-bottom: 165px; }
       .nav-grid { grid-template-columns: repeat(2, 1fr); }
     }
+  
+    /* Workout/Diet Plans & Shared Lab Images */
+    .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .plan-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .plan-box h4 { margin: 0 0 6px; color: #0f766e; font-size: 0.92rem; }
+    .plan-box p { margin: 0; font-size: 0.88rem; color: #334155; white-space: pre-wrap; }
+    .member-health-alert {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+      color: #92400e;
+    }
+    .image-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .shared-img-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(15, 118, 110, 0.06);
+      display: flex;
+      flex-direction: column;
+    }
+    .shared-img-thumb {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      cursor: zoom-in;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .shared-img-body {
+      padding: 12px;
+      font-size: 0.84rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    .coach-reply-box {
+      background: #f0fdfa;
+      border-right: 3px solid #0f766e;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #115e59;
+    }
+    .lightbox-img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #0f172a;
+    }
+
   </style>
 </head>
 <body>
@@ -629,7 +696,7 @@
         <div class="topbar-actions">
           <span class="pill-btn" id="activeUserBadge" onclick="openLoginModal()">👤 الأدمن الرئيسي</span>
           <button class="pill-btn" id="installPwaBtn" style="display:none;" onclick="triggerPwaInstall()">📲 تثبيت التطبيق</button>
-          <button class="pill-btn pill-btn-danger" onclick="logoutUser()">🚪 خروج</button>
+          <button class="pill-btn" onclick="openLoginModal()">🔑 تبديل الحساب</button>
         </div>
       </div>
     </header>
@@ -645,6 +712,9 @@
         </button>
         <button class="sport-btn" data-tab="members" onclick="switchTab('members', this)">
           <span class="ico">👥</span><span>سجل المشتركين</span>
+        </button>
+        <button class="sport-btn" data-tab="plans" onclick="switchTab('plans', this)">
+          <span class="ico">🥗</span><span>التمرين والتغذية</span>
         </button>
         <button class="sport-btn" data-tab="barcode" onclick="switchTab('barcode', this)">
           <span class="ico">📷</span><span>الدخول بالباركود</span>
@@ -828,8 +898,9 @@
                 </select>
               </div>
               <div class="form-group">
-                <label>اسم المدربة *</label>
-                <input type="text" id="mCoach" required placeholder="مثال: كابتن أمل" />
+                <label>اسم المدرب / المدربة *</label>
+                <input type="text" id="mCoach" list="coachesDatalist" required placeholder="مثال: كابتن أمل" />
+                <datalist id="coachesDatalist"></datalist>
               </div>
             </div>
 
@@ -862,6 +933,18 @@
               <div class="form-group"><label>ملاحظات مالية أو تدريبية</label><input type="text" id="mNotes" placeholder="أي ملاحظات إضافية..." /></div>
             </div>
 
+            <div class="form-section-title">6️⃣ بيانات حساب المشترك للدخول للتطبيق (اختياري - يُنشأ تلقائياً)</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>اسم مستخدم المشترك (الافتراضي: رقم الهاتف)</label>
+                <input type="text" id="mAccountUsername" placeholder="اتركه فارغاً لاستخدام رقم الهاتف تلقائياً" />
+              </div>
+              <div class="form-group">
+                <label>كلمة مرور المشترك (الافتراضي: 1234)</label>
+                <input type="text" id="mAccountPassword" placeholder="الافتراضي: 1234" />
+              </div>
+            </div>
+
             <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
               <button type="submit" class="btn btn-primary">💾 حفظ البيانات وإصدار الباركود</button>
               <button type="button" class="btn btn-secondary" onclick="resetRegistrationForm()">إلغاء</button>
@@ -881,7 +964,7 @@
             </div>
           </div>
 
-          <div class="grid-3" style="margin-bottom:14px;">
+          <div class="grid-4" style="margin-bottom:14px;">
             <input type="text" id="searchMember" placeholder="🔍 ابحث بالاسم أو الهاتف أو الباركود..." oninput="renderMembersTable()" />
             <select id="filterShift" onchange="renderMembersTable()">
               <option value="">كل الفترات</option>
@@ -892,6 +975,10 @@
               <option value="">كل الحالات المالية</option>
               <option value="paid">خالص الدفع</option>
               <option value="due">عليه متبقي</option>
+            </select>
+            <select id="filterCoachScope" onchange="renderMembersTable()">
+              <option value="all">كل المشتركين</option>
+              <option value="mine">المتدربون التابعون لي فقط</option>
             </select>
           </div>
 
@@ -913,6 +1000,85 @@
               <tbody id="membersTbody"></tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+
+      <!-- 3B. WORKOUT & DIET PLANS + SHARED LAB IMAGES -->
+      <section id="tab-plans" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🥗 جدول التمرين والنظام الغذائي وصور التحاليل</h2>
+            <button class="btn btn-primary btn-sm" onclick="printSelectedMemberPlan()">🖨️ طباعة البرنامج (A4)</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>اختر المشترك لإدارة برنامجه وصوره المشتركة:</label>
+            <select id="planMemberSelect" onchange="loadSelectedMemberPlan()"></select>
+          </div>
+
+          <div id="planMemberHealthSummary" class="member-health-alert" style="display:none;"></div>
+
+          <form id="planForm" onsubmit="saveMemberPlan(event)">
+            <div class="form-section-title">🏋️ جدول التمرين الأسبوعي</div>
+            <div class="grid-3">
+              <div class="form-group"><label>السبت</label><textarea id="planSat" rows="2" placeholder="مثال: كارديو 20 د + صدر وتراي..."></textarea></div>
+              <div class="form-group"><label>الأحد</label><textarea id="planSun" rows="2" placeholder="مثال: ظهر وباي + بطن..."></textarea></div>
+              <div class="form-group"><label>الإثنين</label><textarea id="planMon" rows="2" placeholder="مثال: أرجل وأرداف..."></textarea></div>
+              <div class="form-group"><label>الثلاثاء</label><textarea id="planTue" rows="2" placeholder="مثال: راحة نشطة / مشي وإطالة..."></textarea></div>
+              <div class="form-group"><label>الأربعاء</label><textarea id="planWed" rows="2" placeholder="مثال: أكتاف وذراعين..."></textarea></div>
+              <div class="form-group"><label>الخميس</label><textarea id="planThu" rows="2" placeholder="مثال: تمارين شاملة (Full Body)..."></textarea></div>
+              <div class="form-group"><label>الجمعة</label><textarea id="planFri" rows="2" placeholder="مثال: راحة واستشفاء..."></textarea></div>
+              <div class="form-group" style="grid-column: span 2;"><label>ملاحظات وتوجيهات التمرين</label><textarea id="planWorkoutNotes" rows="2" placeholder="أي تعليمات خاصة بالإحماء أو الإصابات..."></textarea></div>
+            </div>
+
+            <div class="form-section-title">🥗 النظام الغذائي اليومي</div>
+            <div class="grid-3">
+              <div class="form-group"><label>وجبة الإفطار</label><textarea id="dietBreakfast" rows="2" placeholder="مثال: بيض مسلوق + شوفان + كوب حليب..."></textarea></div>
+              <div class="form-group"><label>وجبة خفيفة 1 (سناك)</label><textarea id="dietSnack1" rows="2" placeholder="مثال: حفنة لوز + تفاحة..."></textarea></div>
+              <div class="form-group"><label>وجبة الغداء</label><textarea id="dietLunch" rows="2" placeholder="مثال: صدر دجاج مشوي + أرز + سلطة خضراء..."></textarea></div>
+              <div class="form-group"><label>وجبة خفيفة 2 (قبل/بعد التمرين)</label><textarea id="dietSnack2" rows="2" placeholder="مثال: موزة + زبادي يوناني..."></textarea></div>
+              <div class="form-group"><label>وجبة العشاء</label><textarea id="dietDinner" rows="2" placeholder="مثال: تونة أو جبن قريش + سلطة..."></textarea></div>
+              <div class="form-group"><label>السوائل والمكملات وملاحظات التغذية</label><textarea id="dietSupplements" rows="2" placeholder="مثال: 3 لتر ماء يومياً، فيتامين د..."></textarea></div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button type="submit" class="btn btn-success">💾 حفظ جدول التمرين والنظام الغذائي</button>
+              <span id="planUpdatedMeta" style="font-size:0.83rem;color:#64748b;"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Shared Lab Tests & Photos for Selected Member -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🩺 صور التحاليل والملفات المشتركة مع المدرب</h2>
+          </div>
+
+          <form id="staffUploadImgForm" onsubmit="uploadMemberImage(event, 'staff')" class="grid-4" style="align-items:end;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;">
+            <div class="form-group">
+              <label>اختر صورة من الهاتف أو الجهاز *</label>
+              <input type="file" id="staffImgFile" accept="image/*" required />
+            </div>
+            <div class="form-group">
+              <label>نوع الصورة</label>
+              <select id="staffImgCategory">
+                <option value="تحليل طبي / مختبر">تحليل طبي / مختبر</option>
+                <option value="أشعة / تقرير طبي">أشعة / تقرير طبي</option>
+                <option value="صورة متابعة الجسم">صورة متابعة الجسم</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>عنوان / ملاحظة الصورة</label>
+              <input type="text" id="staffImgNote" placeholder="مثال: تحليل السكر التراكمي..." />
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">📤 رفع ومشاركة الصورة</button>
+            </div>
+          </form>
+
+          <div id="staffSharedImagesGallery" class="image-gallery-grid"></div>
         </div>
       </section>
 
@@ -1000,6 +1166,7 @@
             <div class="form-group">
               <label>الدور الوظيفي</label>
               <select id="uRole">
+                <option value="مدرب">مدرب</option>
                 <option value="مدربة">مدربة</option>
                 <option value="استقبال">استقبال</option>
                 <option value="محاسب">محاسب</option>
@@ -1069,6 +1236,75 @@
           </div>
         </div>
       </section>
+      <!-- 7. MEMBER PERSONAL PORTAL (Visible when a registered member logs in) -->
+      <section id="tab-member-portal" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🪪 حسابي الشخصي كمشترك</h2>
+            <button class="btn btn-primary btn-sm" id="portalPrintCardBtn">🖨️ طباعة بطاقة العضوية (A4)</button>
+          </div>
+          <div id="memberPortalBody"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🥗 جدول التمرين والنظام الغذائي الخاص بي</h2>
+            <button class="btn btn-primary btn-sm" id="portalPrintPlanBtn">🖨️ طباعة البرنامج (A4)</button>
+          </div>
+          <div id="memberPortalPlanBody"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🩺 مشاركة صور التحاليل أو أي صورة مع المدرب</h2>
+          </div>
+          <p style="margin:0 0 12px;font-size:0.88rem;color:#475569;">
+            يمكنك تصوير أو رفع صور التحاليل الطبية أو أي صورة من هاتفك ومشاركتها مباشرة مع مدربك ليطلع عليها ويرد بملاحظاته.
+          </p>
+          <form id="memberUploadImgForm" onsubmit="uploadMemberImage(event, 'member')" class="grid-4" style="align-items:end;background:#f0fdfa;padding:14px;border-radius:12px;border:1px solid #99f6e4;">
+            <div class="form-group">
+              <label>اختر صورة من الهاتف (الكاميرا أو المعرض) *</label>
+              <input type="file" id="memberImgFile" accept="image/*" required />
+            </div>
+            <div class="form-group">
+              <label>نوع الصورة</label>
+              <select id="memberImgCategory">
+                <option value="تحليل طبي / مختبر">تحليل طبي / مختبر</option>
+                <option value="أشعة / تقرير طبي">أشعة / تقرير طبي</option>
+                <option value="صورة متابعة الجسم">صورة متابعة الجسم</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ملاحظة للمدرب</label>
+              <input type="text" id="memberImgNote" placeholder="مثال: نتيجة تحليل الفيتامينات اليوم..." />
+            </div>
+            <div>
+              <button type="submit" class="btn btn-success" style="width:100%;">📤 إرسال ومشاركة مع المدرب</button>
+            </div>
+          </form>
+          <div id="memberPortalImagesGallery" class="image-gallery-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📋 سجل حضوري</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الوقت والتاريخ</th>
+                  <th>الفترة</th>
+                  <th>المدرب / المدربة</th>
+                </tr>
+              </thead>
+              <tbody id="memberPortalAttendanceTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1185,6 +1421,23 @@
             <tbody id="visitorTbody"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Image Lightbox Preview -->
+  <div class="modal-backdrop" id="imageLightboxModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title" id="lightboxTitle">🖼️ معاينة الصورة</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('imageLightboxModal')">✖</button>
+      </div>
+      <img id="lightboxImgEl" class="lightbox-img" alt="صورة مشتركة" />
+      <p id="lightboxMeta" style="margin:10px 0 6px;font-size:0.88rem;color:#334155;"></p>
+      <div id="lightboxReply" class="coach-reply-box" style="display:none;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <a id="lightboxDownloadBtn" class="btn btn-primary btn-sm" download="shared-image.jpg">⬇️ حفظ الصورة</a>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('imageLightboxModal')">إغلاق</button>
       </div>
     </div>
   </div>
@@ -1399,15 +1652,13 @@
         return;
       }
 
-      // Step 2: Check Mandatory User Login
+      // Step 2: Direct Entry after Serial Activation (No mandatory username/password)
       if (!state.activeUser) {
-        document.getElementById('loginClubTitle').textContent = state.club.name + ' - تسجيل الدخول';
-        document.getElementById('loginLicenseStatus').textContent = `✅ مفعّل ومربوط بـ IP: ${lic.boundIp}`;
-        loginGate.classList.add('active');
-        return;
+        state.activeUser = DEFAULT_ADMIN;
+        persist();
       }
 
-      // Step 3: Unlock App
+      // Step 3: Unlock App directly
       appShell.classList.add('unlocked');
       renderAll();
     }
@@ -1490,12 +1741,7 @@
     }
 
     function logoutUser() {
-      if (!confirm('هل تريد تسجيل الخروج من النظام؟')) return;
-      logVisitorAction('تسجيل خروج');
-      state.activeUser = null;
-      persist();
-      stopCameraScanner();
-      enforceSecurityGates();
+      openLoginModal();
     }
 
     // ==================== VISITOR LOGGING ====================
@@ -1526,8 +1772,9 @@
 
     // ==================== NAVIGATION ====================
     function switchTab(tabName, btnEl) {
-      if (tabName === 'users' && state.activeUser && !state.activeUser.protected && state.activeUser.role !== 'أدمن') {
-        return showToast('قسم المستخدمين مخصص للأدمن فقط');
+      const hasFullAccess = state.activeUser && (state.activeUser.protected || state.activeUser.role === 'أدمن' || state.activeUser.role === 'مدرب' || state.activeUser.role === 'مدربة');
+      if (tabName === 'users' && !hasFullAccess) {
+        return showToast('قسم المستخدمين مخصص للأدمن والمدربين فقط');
       }
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
@@ -1735,12 +1982,18 @@
         paymentMethod: document.getElementById('mPaymentMethod').value,
         payDate: document.getElementById('mPayDate').value || new Date().toISOString().split('T')[0],
         notes: document.getElementById('mNotes').value.trim(),
+        accountUsername: (document.getElementById('mAccountUsername').value.trim() || document.getElementById('mPhone').value.trim()),
+        accountPassword: (document.getElementById('mAccountPassword').value.trim() || '1234'),
         createdAt: new Date().toISOString()
       };
 
       if (editId) {
         const idx = state.members.findIndex(m => m.id === editId);
-        if (idx !== -1) state.members[idx] = memberData;
+        if (idx !== -1) {
+          memberData.plan = state.members[idx].plan || null;
+          memberData.sharedImages = state.members[idx].sharedImages || [];
+          state.members[idx] = memberData;
+        }
         logVisitorAction('تعديل بيانات مشترك: ' + memberData.name);
         showToast('تم تحديث بيانات المشترك بنجاح');
       } else {
@@ -1791,6 +2044,8 @@
       document.getElementById('mPaymentMethod').value = m.paymentMethod;
       document.getElementById('mPayDate').value = m.payDate;
       document.getElementById('mNotes').value = m.notes || '';
+      document.getElementById('mAccountUsername').value = m.accountUsername || m.phone || '';
+      document.getElementById('mAccountPassword').value = m.accountPassword || '1234';
       switchTab('register', document.querySelector('[data-tab=register]'));
     }
 
@@ -1809,11 +2064,13 @@
       const shift = document.getElementById('filterShift').value;
       const pay = document.getElementById('filterPayment').value;
 
+      const coachScope = (document.getElementById('filterCoachScope')?.value) || 'all';
       const filtered = state.members.filter(m => {
         const matchQ = m.name.toLowerCase().includes(q) || m.phone.includes(q) || m.id.toLowerCase().includes(q);
         const matchShift = !shift || m.shift === shift;
         const matchPay = !pay || (pay === 'paid' ? m.remaining <= 0 : m.remaining > 0);
-        return matchQ && matchShift && matchPay;
+        const matchCoach = coachScope !== 'mine' || !state.activeUser || (m.coach || '').toLowerCase().includes((state.activeUser.fullName || '').toLowerCase());
+        return matchQ && matchShift && matchPay && matchCoach;
       });
 
       const tbody = document.getElementById('membersTbody');
@@ -1833,9 +2090,10 @@
           <td>${m.paidAmount} / ${m.totalFee} د.ل</td>
           <td>${m.remaining <= 0 ? '<span class="badge badge-green">خالص</span>' : `<span class="badge badge-amber">متبقي ${m.remaining} د.ل</span>`}</td>
           <td>
-            <button class="btn btn-primary btn-sm" onclick="openMemberProfile('${m.id}')">👁️</button>
-            <button class="btn btn-secondary btn-sm" onclick="editMember('${m.id}')">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">🗑️</button>
+            <button class="btn btn-primary btn-sm" title="الملف الكامل" onclick="openMemberProfile('${m.id}')">👁️</button>
+            <button class="btn btn-success btn-sm" title="جدول التمرين والغذاء والصور" onclick="openMemberPlansTab('${m.id}')">🥗</button>
+            <button class="btn btn-secondary btn-sm" title="تعديل" onclick="editMember('${m.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" title="حذف" onclick="deleteMember('${m.id}')">🗑️</button>
           </td>
         </tr>
       `).join('');
@@ -1873,9 +2131,12 @@
           <div>الصدر: <strong>${ms.chest}</strong></div>
           <div>الأكتاف: <strong>${ms.shoulders}</strong></div>
         </div>
+        <div class="form-section-title">بيانات الدخول لحساب المشترك</div>
+        <p style="margin:6px 0;">اسم المستخدم: <strong>${m.accountUsername || m.phone}</strong> | كلمة المرور: <strong>${m.accountPassword || '1234'}</strong></p>
         <div class="form-section-title">البيانات المالية</div>
         <p style="margin:6px 0;">الإجمالي: <strong>${m.totalFee} د.ل</strong> | المدفوع: <strong>${m.paidAmount} د.ل</strong> | المتبقي: <strong>${m.remaining} د.ل</strong> | طريقة الدفع: <strong>${m.paymentMethod}</strong> (${m.payDate})</p>
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-success" onclick="closeModal('memberProfileModal'); openMemberPlansTab('${m.id}')">🥗 جدول التمرين والتغذية والصور</button>
           <button class="btn btn-primary" onclick="printMemberCard('${m.id}')">🖨️ طباعة بطاقة العضوية (A4)</button>
           <button class="btn btn-secondary" onclick="closeModal('memberProfileModal')">إغلاق</button>
         </div>
@@ -2070,18 +2331,463 @@
       document.getElementById('loginModal').classList.add('open');
     }
 
+    function findAccountByCredentials(un, pw) {
+      // 1. Check staff/admin/coach accounts
+      const staff = state.users.find(u => u.username === un && u.password === pw);
+      if (staff) return staff;
+      // 2. Check registered member accounts
+      const member = state.members.find(m => (m.accountUsername || m.phone) === un && (m.accountPassword || '1234') === pw);
+      if (member) {
+        return {
+          id: member.id,
+          fullName: member.name,
+          username: member.accountUsername || member.phone,
+          role: 'مشترك',
+          memberId: member.id,
+          active: true,
+          protected: false
+        };
+      }
+      return null;
+    }
+
+    function applyRoleVisibility() {
+      const u = state.activeUser;
+      const navGrid = document.querySelector('.nav-grid');
+      const usersBtn = document.getElementById('usersNavBtn');
+      if (!u) return;
+
+      if (u.role === 'مشترك') {
+        // Hide staff navigation and show Member Personal Portal
+        if (navGrid) navGrid.style.display = 'none';
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const portal = document.getElementById('tab-member-portal');
+        if (portal) portal.classList.add('active');
+        renderMemberPortal(u.memberId);
+      } else {
+        if (navGrid) navGrid.style.display = 'grid';
+        // Grant full permissions to Admins and Coaches (مدرب / مدربة)
+        const hasFullPermissions = u.protected || u.role === 'أدمن' || u.role === 'مدرب' || u.role === 'مدربة';
+        if (usersBtn) usersBtn.style.display = hasFullPermissions ? 'flex' : 'none';
+        // Ensure a valid tab is active
+        const portal = document.getElementById('tab-member-portal');
+        if (portal && portal.classList.contains('active')) {
+          switchTab('dashboard', document.querySelector('[data-tab=dashboard]'));
+        }
+      }
+    }
+
+    function renderMemberPortal(memberId) {
+      const m = state.members.find(x => x.id === memberId);
+      const body = document.getElementById('memberPortalBody');
+      const attBody = document.getElementById('memberPortalAttendanceTbody');
+      const printBtn = document.getElementById('portalPrintCardBtn');
+      if (!m || !body) return;
+      const ms = m.measurements || {};
+      if (printBtn) printBtn.onclick = () => printMemberCard(m.id);
+
+      body.innerHTML = `
+        <div class="grid-2" style="align-items:center;">
+          <div>
+            <h3 style="margin:0 0 8px;color:#0f766e;">مرحباً، ${m.name}</h3>
+            <p style="margin:4px 0;"><strong>رقم العضوية (الباركود):</strong> ${m.id}</p>
+            <p style="margin:4px 0;"><strong>العمر:</strong> ${m.age} سنة | <strong>الهاتف:</strong> ${m.phone}</p>
+            <p style="margin:4px 0;"><strong>الوزن:</strong> ${m.weight} كجم | <strong>الطول:</strong> ${m.height} سم | <strong>BMI:</strong> ${m.bmi}</p>
+            <p style="margin:4px 0;"><strong>فترة التمارين:</strong> ${m.shift} | <strong>المدرب/المدربة:</strong> ${m.coach}</p>
+          </div>
+          <div class="qr-box">
+            <div id="portalMemberQr"></div>
+            <small style="margin-top:6px;font-weight:700;">${m.id}</small>
+          </div>
+        </div>
+        <div class="form-section-title">قياسات الجسم (سم)</div>
+        <div class="grid-4" style="font-size:0.88rem;">
+          <div>الذراع اليمنى: <strong>${ms.armRight}</strong></div>
+          <div>الذراع اليسرى: <strong>${ms.armLeft}</strong></div>
+          <div>الفخذ الأيمن: <strong>${ms.thighRight}</strong></div>
+          <div>الفخذ الأيسر: <strong>${ms.thighLeft}</strong></div>
+          <div>المؤخرة: <strong>${ms.glutes}</strong></div>
+          <div>الخصر: <strong>${ms.waist}</strong></div>
+          <div>الصدر: <strong>${ms.chest}</strong></div>
+          <div>الأكتاف: <strong>${ms.shoulders}</strong></div>
+        </div>
+        <div class="form-section-title">الحالة المالية</div>
+        <p style="margin:6px 0;">الاشتراك: <strong>${m.totalFee} د.ل</strong> | المدفوع: <strong>${m.paidAmount} د.ل</strong> | المتبقي: <strong>${m.remaining} د.ل</strong></p>
+      `;
+      setTimeout(() => renderQR('portalMemberQr', m.id, 135), 60);
+
+      // Render Member Workout & Diet Plan in Portal
+      const planBody = document.getElementById('memberPortalPlanBody');
+      const printPlanBtn = document.getElementById('portalPrintPlanBtn');
+      if (printPlanBtn) printPlanBtn.onclick = () => printSelectedMemberPlan(m.id);
+      const p = m.plan;
+      if (planBody) {
+        if (!p) {
+          planBody.innerHTML = '<p style="color:#64748b;text-align:center;padding:14px;">لم يقم المدرب بإضافة جدول التمرين والنظام الغذائي بعد.</p>';
+        } else {
+          planBody.innerHTML = `
+            <p style="margin:0 0 10px;font-size:0.82rem;color:#64748b;">آخر تحديث: ${p.updatedAt || ''} • بواسطة: <strong>${p.updatedBy || m.coach}</strong></p>
+            <div class="form-section-title">🏋️ جدول التمرين الأسبوعي</div>
+            <div class="plan-grid">
+              <div class="plan-box"><h4>السبت</h4><p>${p.sat || '—'}</p></div>
+              <div class="plan-box"><h4>الأحد</h4><p>${p.sun || '—'}</p></div>
+              <div class="plan-box"><h4>الإثنين</h4><p>${p.mon || '—'}</p></div>
+              <div class="plan-box"><h4>الثلاثاء</h4><p>${p.tue || '—'}</p></div>
+              <div class="plan-box"><h4>الأربعاء</h4><p>${p.wed || '—'}</p></div>
+              <div class="plan-box"><h4>الخميس</h4><p>${p.thu || '—'}</p></div>
+              <div class="plan-box"><h4>الجمعة</h4><p>${p.fri || '—'}</p></div>
+              <div class="plan-box"><h4>ملاحظات التمرين</h4><p>${p.workoutNotes || '—'}</p></div>
+            </div>
+            <div class="form-section-title">🥗 النظام الغذائي اليومي</div>
+            <div class="plan-grid">
+              <div class="plan-box"><h4>الإفطار</h4><p>${p.breakfast || '—'}</p></div>
+              <div class="plan-box"><h4>وجبة خفيفة 1</h4><p>${p.snack1 || '—'}</p></div>
+              <div class="plan-box"><h4>الغداء</h4><p>${p.lunch || '—'}</p></div>
+              <div class="plan-box"><h4>وجبة خفيفة 2</h4><p>${p.snack2 || '—'}</p></div>
+              <div class="plan-box"><h4>العشاء</h4><p>${p.dinner || '—'}</p></div>
+              <div class="plan-box"><h4>السوائل والمكملات</h4><p>${p.supplements || '—'}</p></div>
+            </div>
+          `;
+        }
+      }
+
+      // Render Member Shared Images Gallery
+      renderSharedImagesGallery(m.id, 'memberPortalImagesGallery', false);
+
+      const myAtt = state.attendance.filter(a => a.memberId === m.id);
+      if (!myAtt.length) {
+        attBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:16px;">لا توجد سجلات حضور مسجلة بعد.</td></tr>';
+      } else {
+        attBody.innerHTML = myAtt.map(a => `
+          <tr><td>${a.time}</td><td><span class="badge badge-teal">${a.shift}</span></td><td>${a.coach}</td></tr>
+        `).join('');
+      }
+    }
+
+    function renderCoachesDatalist() {
+      const dl = document.getElementById('coachesDatalist');
+      if (!dl) return;
+      const coaches = state.users.filter(u => (u.role === 'مدرب' || u.role === 'مدربة') && u.active);
+      dl.innerHTML = coaches.map(c => `<option value="${c.fullName}"></option>`).join('');
+    }
+
     function performModalLogin() {
       const un = document.getElementById('loginUsername').value.trim();
       const pw = document.getElementById('loginPassword').value;
-      const found = state.users.find(u => u.username === un && u.password === pw);
+      const found = findAccountByCredentials(un, pw);
       if (!found) return showToast('بيانات الدخول غير صحيحة');
       if (!found.active) return showToast('هذا الحساب معطل');
       state.activeUser = found;
       persist();
-      renderClubUI();
+      renderAll();
       closeModal('loginModal');
-      logVisitorAction('تبديل المستخدم إلى: ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
+      logVisitorAction('تبديل المستخدم إلى: ' + (found.protected ? 'الأدمن الرئيسي' : `${found.fullName} (${found.role})`));
       showToast('مرحباً بك، ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
+    }
+
+
+    // ==================== WORKOUT, DIET PLANS & SHARED LAB IMAGES ====================
+    function openMemberPlansTab(memberId) {
+      switchTab('plans', document.querySelector('[data-tab=plans]'));
+      renderPlanMemberSelect(memberId);
+      loadSelectedMemberPlan();
+    }
+
+    function renderPlanMemberSelect(preselectId) {
+      const sel = document.getElementById('planMemberSelect');
+      if (!sel) return;
+      const currentVal = preselectId || sel.value;
+      if (!state.members.length) {
+        sel.innerHTML = '<option value="">لا يوجد مشتركون مسجلون بعد</option>';
+        return;
+      }
+      sel.innerHTML = state.members.map(m =>
+        `<option value="${m.id}">${m.name} (${m.id}) — المدرب: ${m.coach || 'غير محدد'}</option>`
+      ).join('');
+      if (currentVal && state.members.some(m => m.id === currentVal)) {
+        sel.value = currentVal;
+      }
+    }
+
+    function loadSelectedMemberPlan() {
+      const sel = document.getElementById('planMemberSelect');
+      const healthBox = document.getElementById('planMemberHealthSummary');
+      const meta = document.getElementById('planUpdatedMeta');
+      const gallery = document.getElementById('staffSharedImagesGallery');
+      const m = state.members.find(x => x.id === (sel ? sel.value : ''));
+
+      const fields = ['planSat','planSun','planMon','planTue','planWed','planThu','planFri','planWorkoutNotes',
+                      'dietBreakfast','dietSnack1','dietLunch','dietSnack2','dietDinner','dietSupplements'];
+      if (!m) {
+        fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        if (healthBox) healthBox.style.display = 'none';
+        if (meta) meta.textContent = '';
+        if (gallery) gallery.innerHTML = '<p style="color:#64748b;">اختر مشتركاً لعرض صوره المشتركة.</p>';
+        return;
+      }
+
+      if (healthBox) {
+        const dis = m.hasDisease === 'نعم' ? (m.diseases?.join('، ') || 'نعم') : 'لا يوجد';
+        const inj = m.hasInjury === 'نعم' ? (m.injuryLocation || 'نعم') : 'لا يوجد';
+        healthBox.style.display = 'block';
+        healthBox.innerHTML = `<strong>ملخص صحي للمشترك (${m.name}):</strong> الوزن: ${m.weight} كجم | الطول: ${m.height} سم | BMI: ${m.bmi || '-'} | <strong>الأمراض:</strong> ${dis} | <strong>الإصابات:</strong> ${inj}`;
+      }
+
+      const p = m.plan || {};
+      document.getElementById('planSat').value = p.sat || '';
+      document.getElementById('planSun').value = p.sun || '';
+      document.getElementById('planMon').value = p.mon || '';
+      document.getElementById('planTue').value = p.tue || '';
+      document.getElementById('planWed').value = p.wed || '';
+      document.getElementById('planThu').value = p.thu || '';
+      document.getElementById('planFri').value = p.fri || '';
+      document.getElementById('planWorkoutNotes').value = p.workoutNotes || '';
+      document.getElementById('dietBreakfast').value = p.breakfast || '';
+      document.getElementById('dietSnack1').value = p.snack1 || '';
+      document.getElementById('dietLunch').value = p.lunch || '';
+      document.getElementById('dietSnack2').value = p.snack2 || '';
+      document.getElementById('dietDinner').value = p.dinner || '';
+      document.getElementById('dietSupplements').value = p.supplements || '';
+
+      if (meta) {
+        meta.textContent = p.updatedAt ? `آخر تحديث: ${p.updatedAt} بواسطة ${p.updatedBy || 'المدرب'}` : 'لم يتم إعداد برنامج لهذا المشترك بعد.';
+      }
+
+      renderSharedImagesGallery(m.id, 'staffSharedImagesGallery', true);
+    }
+
+    function saveMemberPlan(e) {
+      e.preventDefault();
+      const memberId = document.getElementById('planMemberSelect').value;
+      const m = state.members.find(x => x.id === memberId);
+      if (!m) return showToast('يرجى اختيار مشترك أولاً');
+
+      m.plan = {
+        sat: document.getElementById('planSat').value.trim(),
+        sun: document.getElementById('planSun').value.trim(),
+        mon: document.getElementById('planMon').value.trim(),
+        tue: document.getElementById('planTue').value.trim(),
+        wed: document.getElementById('planWed').value.trim(),
+        thu: document.getElementById('planThu').value.trim(),
+        fri: document.getElementById('planFri').value.trim(),
+        workoutNotes: document.getElementById('planWorkoutNotes').value.trim(),
+        breakfast: document.getElementById('dietBreakfast').value.trim(),
+        snack1: document.getElementById('dietSnack1').value.trim(),
+        lunch: document.getElementById('dietLunch').value.trim(),
+        snack2: document.getElementById('dietSnack2').value.trim(),
+        dinner: document.getElementById('dietDinner').value.trim(),
+        supplements: document.getElementById('dietSupplements').value.trim(),
+        updatedAt: new Date().toLocaleString('ar-LY'),
+        updatedBy: state.activeUser ? (state.activeUser.protected ? 'الأدمن الرئيسي' : state.activeUser.fullName) : 'المدرب'
+      };
+      persist();
+      loadSelectedMemberPlan();
+      logVisitorAction('تحديث جدول التمرين والغذاء للمشترك: ' + m.name);
+      showToast('✅ تم حفظ جدول التمرين والنظام الغذائي بنجاح');
+    }
+
+    function compressImageFile(file, maxDim = 1024, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = ev.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadMemberImage(e, sourceMode) {
+      e.preventDefault();
+      const memberId = sourceMode === 'member'
+        ? (state.activeUser && state.activeUser.memberId)
+        : document.getElementById('planMemberSelect').value;
+
+      const m = state.members.find(x => x.id === memberId);
+      if (!m) return showToast('يرجى اختيار مشترك أولاً');
+
+      const fileInput = document.getElementById(sourceMode === 'member' ? 'memberImgFile' : 'staffImgFile');
+      const catEl = document.getElementById(sourceMode === 'member' ? 'memberImgCategory' : 'staffImgCategory');
+      const noteEl = document.getElementById(sourceMode === 'member' ? 'memberImgNote' : 'staffImgNote');
+
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) return showToast('يرجى اختيار صورة');
+
+      try {
+        const dataUrl = await compressImageFile(file, 1024, 0.72);
+        if (!Array.isArray(m.sharedImages)) m.sharedImages = [];
+        m.sharedImages.unshift({
+          id: 'IMG-' + Date.now(),
+          dataUrl,
+          category: catEl.value,
+          note: noteEl.value.trim(),
+          sharedWithCoach: m.coach || 'المدرب',
+          uploadedBy: state.activeUser ? (state.activeUser.protected ? 'الأدمن الرئيسي' : state.activeUser.fullName) : m.name,
+          uploadedAt: new Date().toLocaleString('ar-LY'),
+          coachReply: ''
+        });
+        try {
+          persist();
+        } catch (quotaErr) {
+          m.sharedImages.shift();
+          return showToast('⚠️ مساحة التخزين ممتلئة — احذف بعض الصور القديمة أولاً');
+        }
+
+        fileInput.value = '';
+        noteEl.value = '';
+        if (sourceMode === 'member') {
+          renderSharedImagesGallery(m.id, 'memberPortalImagesGallery', false);
+        } else {
+          renderSharedImagesGallery(m.id, 'staffSharedImagesGallery', true);
+        }
+        logVisitorAction(`رفع صورة (${catEl.value}) للمشترك: ${m.name}`);
+        showToast('✅ تم رفع الصورة ومشاركتها مع المدرب بنجاح');
+      } catch (err) {
+        showToast('❌ تعذر معالجة الصورة، يرجى تجربة صورة أخرى');
+      }
+    }
+
+    function saveCoachImageReply(memberId, imgId) {
+      const m = state.members.find(x => x.id === memberId);
+      if (!m || !m.sharedImages) return;
+      const img = m.sharedImages.find(i => i.id === imgId);
+      if (!img) return;
+      const input = document.getElementById('reply-' + imgId);
+      if (!input) return;
+      img.coachReply = input.value.trim();
+      img.repliedBy = state.activeUser ? (state.activeUser.protected ? 'الأدمن الرئيسي' : state.activeUser.fullName) : 'المدرب';
+      img.repliedAt = new Date().toLocaleString('ar-LY');
+      persist();
+      renderSharedImagesGallery(memberId, 'staffSharedImagesGallery', true);
+      logVisitorAction('إضافة رد المدرب على صورة تحليل للمشترك: ' + m.name);
+      showToast('✅ تم حفظ رد المدرب على الصورة');
+    }
+
+    function deleteSharedImage(memberId, imgId, galleryContainerId, canReply) {
+      if (!confirm('هل تريد حذف هذه الصورة؟')) return;
+      const m = state.members.find(x => x.id === memberId);
+      if (!m || !m.sharedImages) return;
+      m.sharedImages = m.sharedImages.filter(i => i.id !== imgId);
+      persist();
+      renderSharedImagesGallery(memberId, galleryContainerId, canReply);
+      showToast('تم حذف الصورة');
+    }
+
+    function openImageLightbox(memberId, imgId) {
+      const m = state.members.find(x => x.id === memberId);
+      if (!m || !m.sharedImages) return;
+      const img = m.sharedImages.find(i => i.id === imgId);
+      if (!img) return;
+      document.getElementById('lightboxTitle').textContent = `🖼️ ${img.category} — ${m.name}`;
+      document.getElementById('lightboxImgEl').src = img.dataUrl;
+      document.getElementById('lightboxMeta').innerHTML = `<strong>الملاحظة:</strong> ${img.note || 'لا توجد ملاحظة'} | <strong>بواسطة:</strong> ${img.uploadedBy} (${img.uploadedAt})`;
+      const rep = document.getElementById('lightboxReply');
+      if (img.coachReply) {
+        rep.style.display = 'block';
+        rep.innerHTML = `<strong>رد المدرب (${img.repliedBy || ''}):</strong> ${img.coachReply}`;
+      } else {
+        rep.style.display = 'none';
+      }
+      const dl = document.getElementById('lightboxDownloadBtn');
+      dl.href = img.dataUrl;
+      dl.download = `${m.name}_${img.category}.jpg`;
+      document.getElementById('imageLightboxModal').classList.add('open');
+    }
+
+    function renderSharedImagesGallery(memberId, containerId, canReply) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const m = state.members.find(x => x.id === memberId);
+      const imgs = (m && Array.isArray(m.sharedImages)) ? m.sharedImages : [];
+      if (!imgs.length) {
+        el.innerHTML = '<p style="color:#64748b;grid-column:1/-1;text-align:center;padding:14px;">لا توجد صور تحاليل أو مرفقات مشتركة بعد.</p>';
+        return;
+      }
+      el.innerHTML = imgs.map(img => `
+        <div class="shared-img-card">
+          <img src="${img.dataUrl}" class="shared-img-thumb" alt="${img.category}" onclick="openImageLightbox('${memberId}', '${img.id}')" />
+          <div class="shared-img-body">
+            <div><span class="badge badge-teal">${img.category}</span></div>
+            <div style="font-weight:700;color:#1e293b;">${img.note || 'بدون ملاحظة'}</div>
+            <div style="font-size:0.76rem;color:#64748b;">📅 ${img.uploadedAt} • مشترك مع: ${img.sharedWithCoach || 'المدرب'}</div>
+            ${img.coachReply ? `<div class="coach-reply-box"><strong>💬 رد المدرب:</strong> ${img.coachReply}</div>` : ''}
+            ${canReply ? `
+              <div style="display:flex;gap:6px;margin-top:4px;">
+                <input type="text" id="reply-${img.id}" value="${(img.coachReply || '').replace(/"/g, '&quot;')}" placeholder="اكتب رد/ملاحظة المدرب..." style="padding:6px 8px;font-size:0.8rem;" />
+                <button class="btn btn-primary btn-sm" onclick="saveCoachImageReply('${memberId}', '${img.id}')">حفظ</button>
+              </div>
+            ` : ''}
+            <div style="display:flex;gap:6px;margin-top:auto;padding-top:6px;">
+              <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openImageLightbox('${memberId}', '${img.id}')">🔍 تكبير</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSharedImage('${memberId}', '${img.id}', '${containerId}', ${canReply})">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function printSelectedMemberPlan(memberIdOverride) {
+      const memberId = memberIdOverride || document.getElementById('planMemberSelect')?.value;
+      const m = state.members.find(x => x.id === memberId);
+      if (!m) return showToast('يرجى اختيار مشترك أولاً');
+      const p = m.plan || {};
+      const area = document.getElementById('printArea');
+      area.innerHTML = `
+        <div style="font-family:Cairo,sans-serif;border:3px solid #0f766e;border-radius:16px;padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #ccfbf1;padding-bottom:10px;margin-bottom:14px;">
+            <div>
+              <h1 style="margin:0;color:#0f766e;font-size:1.5rem;">${state.club.name}</h1>
+              <p style="margin:2px 0 0;color:#475569;">برنامج التمرين والنظام الغذائي</p>
+            </div>
+            <div style="text-align:left;font-size:0.88rem;">
+              <div><strong>المشترك:</strong> ${m.name} (${m.id})</div>
+              <div><strong>المدرب/المدربة:</strong> ${m.coach || '-'} | <strong>BMI:</strong> ${m.bmi || '-'}</div>
+            </div>
+          </div>
+          <h3 style="background:#f0fdfa;padding:6px 10px;color:#0f766e;border-right:4px solid #0f766e;">🏋️ جدول التمرين الأسبوعي</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:0.86rem;margin-bottom:14px;">
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;width:90px;">السبت</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.sat || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الأحد</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.sun || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الإثنين</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.mon || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الثلاثاء</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.tue || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الأربعاء</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.wed || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الخميس</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.thu || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الجمعة</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.fri || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">ملاحظات</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.workoutNotes || '—'}</td></tr>
+          </table>
+          <h3 style="background:#f0fdfa;padding:6px 10px;color:#0f766e;border-right:4px solid #0f766e;">🥗 النظام الغذائي اليومي</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;width:130px;">الإفطار</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.breakfast || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">سناك 1</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.snack1 || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">الغداء</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.lunch || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">سناك 2</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.snack2 || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">العشاء</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.dinner || '—'}</td></tr>
+            <tr><th style="border:1px solid #cbd5e1;padding:6px;">السوائل والمكملات</th><td style="border:1px solid #cbd5e1;padding:6px;">${p.supplements || '—'}</td></tr>
+          </table>
+          <p style="margin-top:16px;font-size:0.8rem;color:#475569;">العنوان: ${state.club.address} | إدارة النظام: عمر الطابوني (0923482662)</p>
+        </div>
+      `;
+      setTimeout(() => window.print(), 200);
     }
 
     // ==================== EXPORT EXCEL & CSV ====================
@@ -2233,6 +2939,10 @@
       renderMembersTable();
       renderAttendanceTable();
       renderUsersTable();
+      renderCoachesDatalist();
+      renderPlanMemberSelect();
+      loadSelectedMemberPlan();
+      applyRoleVisibility();
     }
 
     // ==================== PWA INSTALL & SERVICE WORKER ====================

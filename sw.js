@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smart-fitness-club-v2';
+const CACHE_NAME = 'smart-fitness-club-v5';
 const ASSETS = [
   './',
   './index.html',

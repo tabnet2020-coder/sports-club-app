@@ -51,6 +51,87 @@
       padding-bottom: 120px;
     }
 
+    /* Fullscreen Security Gates (Activation & Login) */
+    .gate-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(145deg, #0f172a 0%, #115e59 55%, #0f766e 100%);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      padding-bottom: 90px;
+      overflow-y: auto;
+    }
+    .gate-overlay.active { display: flex; }
+    .gate-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 450px;
+      border-radius: 22px;
+      padding: 28px 26px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .gate-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      color: #fff;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      box-shadow: 0 10px 24px rgba(15, 118, 110, 0.3);
+    }
+    .gate-card h2 {
+      margin: 0 0 6px;
+      color: #0f172a;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    .gate-card p.sub {
+      margin: 0 0 18px;
+      color: #64748b;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .ip-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      color: #0f766e;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .gate-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: none;
+      text-align: right;
+    }
+    .gate-form { text-align: right; }
+    .gate-form .form-group { margin-bottom: 14px; }
+
+    /* App Wrapper hidden until activated & logged in */
+    #appShell { display: none; flex-direction: column; flex: 1; }
+    #appShell.unlocked { display: flex; }
+
     /* Header */
     .topbar {
       background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
@@ -121,6 +202,11 @@
       transition: all 0.2s;
     }
     .pill-btn:hover { background: rgba(255,255,255,0.26); transform: translateY(-1px); }
+    .pill-btn-danger {
+      background: rgba(220, 38, 38, 0.25);
+      border-color: rgba(254, 202, 202, 0.45);
+    }
+    .pill-btn-danger:hover { background: rgba(220, 38, 38, 0.45); }
 
     /* Container */
     .container {
@@ -265,22 +351,10 @@
     .tip-text h3 { margin: 0 0 4px; font-size: 1rem; color: #0f766e; }
     .tip-text p { margin: 0; font-size: 0.96rem; font-weight: 600; color: #1e293b; }
 
-    /* Two-column layouts */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-      gap: 18px;
-    }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-    }
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 12px;
-    }
+    /* Grids */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
 
     /* Forms */
     .form-section-title {
@@ -293,16 +367,8 @@
       margin: 18px 0 12px;
       border-right: 4px solid var(--primary);
     }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #334155;
-    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.85rem; font-weight: 700; color: #334155; }
     input, select, textarea {
       width: 100%;
       padding: 10px 12px;
@@ -319,12 +385,7 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.16);
     }
-    .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 4px;
-    }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
     .chip-check {
       display: inline-flex;
       align-items: center;
@@ -362,40 +423,16 @@
     .btn-success:hover { background: #047857; }
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-danger:hover { background: #b91c1c; }
-    .btn-warning { background: var(--warning); color: #fff; }
     .btn-sm { padding: 6px 11px; font-size: 0.8rem; border-radius: 8px; }
 
     /* Tables */
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.87rem;
-    }
-    th, td {
-      padding: 11px 12px;
-      text-align: right;
-      border-bottom: 1px solid #f1f5f9;
-      white-space: nowrap;
-    }
-    th {
-      background: #f0fdfa;
-      color: var(--primary-dark);
-      font-weight: 800;
-    }
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    th, td { padding: 11px 12px; text-align: right; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+    th { background: #f0fdfa; color: var(--primary-dark); font-weight: 800; }
     tr:hover td { background: #f8fafc; }
 
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 0.77rem;
-      font-weight: 700;
-    }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.77rem; font-weight: 700; }
     .badge-green { background: #d1fae5; color: #065f46; }
     .badge-amber { background: #fef3c7; color: #92400e; }
     .badge-red { background: #fee2e2; color: #991b1b; }
@@ -419,14 +456,7 @@
       padding: 8px;
       border: 1px solid #e2e8f0;
     }
-
-    iframe.map-frame {
-      width: 100%;
-      height: 230px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-top: 12px;
-    }
+    iframe.map-frame { width: 100%; height: 230px; border: 1px solid var(--border); border-radius: 12px; margin-top: 12px; }
 
     /* Modals */
     .modal-backdrop {
@@ -436,7 +466,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 200;
+      z-index: 600;
       padding: 16px;
       backdrop-filter: blur(3px);
     }
@@ -462,7 +492,7 @@
       background: #0f172a;
       color: #e2e8f0;
       padding: 10px 16px;
-      z-index: 90;
+      z-index: 550;
       border-top: 3px solid var(--accent);
       box-shadow: 0 -4px 20px rgba(0,0,0,0.18);
       font-size: 0.82rem;
@@ -476,19 +506,9 @@
       justify-content: space-between;
       gap: 10px;
     }
-    .footer-info {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 14px;
-    }
+    .footer-info { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
     .footer-info span { display: inline-flex; align-items: center; gap: 5px; }
-    .footer-links {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .footer-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .footer-links a, .footer-links button {
       color: #fff;
       text-decoration: none;
@@ -509,7 +529,7 @@
     /* Toast */
     .toast {
       position: fixed;
-      top: 84px;
+      top: 24px;
       left: 20px;
       background: #0f172a;
       color: #fff;
@@ -517,8 +537,8 @@
       border-radius: 12px;
       font-size: 0.88rem;
       font-weight: 700;
-      z-index: 300;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.22);
+      z-index: 700;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.25);
       display: none;
     }
     .toast.show { display: block; animation: fadeIn 0.25s ease; }
@@ -547,496 +567,510 @@
 </head>
 <body>
 
-  <!-- Top Bar -->
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <div class="brand-logo">🏋️</div>
-        <div>
-          <h1>
-            <span id="headerClubName">نادي اللياقة الذكي</span>
-            <button class="pill-btn" style="padding:3px 10px;font-size:0.74rem;" onclick="openClubSettingsModal()">✏️ تعديل</button>
-          </h1>
-          <p id="headerClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
-        </div>
-      </div>
-
-      <div class="topbar-actions">
-        <span class="pill-btn" id="activeUserBadge" onclick="openLoginModal()">👤 عمر الطابوني (أدمن رئيسي)</span>
-        <button class="pill-btn" id="installPwaBtn" style="display:none;" onclick="triggerPwaInstall()">📲 تثبيت التطبيق</button>
-      </div>
-    </div>
-  </header>
-
   <div class="toast" id="toast"></div>
 
-  <main class="container">
-    <!-- Sports Navigation Buttons -->
-    <nav class="nav-grid" aria-label="الأقسام الرئيسية">
-      <button class="sport-btn active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
-        <span class="ico">🏠</span><span>الرئيسية</span>
-      </button>
-      <button class="sport-btn" data-tab="register" onclick="switchTab('register', this)">
-        <span class="ico">📝</span><span>تسجيل مشترك</span>
-      </button>
-      <button class="sport-btn" data-tab="members" onclick="switchTab('members', this)">
-        <span class="ico">👥</span><span>سجل المشتركين</span>
-      </button>
-      <button class="sport-btn" data-tab="barcode" onclick="switchTab('barcode', this)">
-        <span class="ico">📷</span><span>الدخول بالباركود</span>
-      </button>
-      <button class="sport-btn" data-tab="users" onclick="switchTab('users', this)">
-        <span class="ico">🛡️</span><span>المستخدمون</span>
-      </button>
-      <button class="sport-btn" data-tab="location" onclick="switchTab('location', this)">
-        <span class="ico">📍</span><span>العنوان والتثبيت</span>
-      </button>
-    </nav>
-
-    <!-- 1. DASHBOARD -->
-    <section id="tab-dashboard" class="section active">
-      <!-- Daily Tip -->
-      <div class="tip-banner">
-        <div class="tip-text">
-          <h3 id="tipPeriodTitle">☀️ تلميح الصباح الرياضي</h3>
-          <p id="tipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
+  <!-- ==================== GATE 1: ACTIVATION SERIAL & IP LOCK ==================== -->
+  <div class="gate-overlay" id="activationGate">
+    <div class="gate-card">
+      <div class="gate-icon">🔑</div>
+      <h2>تفعيل نظام النادي الرياضي</h2>
+      <p class="sub">هذا النظام محمي بسيريال تفعيل مرتبط بعنوان IP الجهاز. يرجى إدخال مفتاح التفعيل الخاص بك للمتابعة.</p>
+      <div class="ip-pill" id="detectedIpPill">🌐 جاري التحقق من IP الجهاز...</div>
+      <div class="gate-error" id="activationError"></div>
+      <form class="gate-form" onsubmit="activateLicense(event)">
+        <div class="form-group">
+          <label>سيريال التفعيل (Serial Key)</label>
+          <input type="text" id="serialKeyInput" required autocomplete="off" placeholder="SFC-XXXX-XXXX-XXXX" style="text-align:center;letter-spacing:1.5px;font-weight:800;direction:ltr;" />
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-secondary btn-sm" onclick="toggleTipPeriod()">🔄 تبديل صباح/مساء</button>
-          <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
+        <button type="submit" class="btn btn-primary" id="activateBtn" style="width:100%;padding:12px;">🔓 تفعيل وربط بـ IP الجهاز</button>
+      </form>
+      <p style="margin:14px 0 0;font-size:0.78rem;color:#64748b;">للحصول على مفتاح تفعيل، تواصل مع مسؤول النظام عبر الرقم الموجود بالأسفل.</p>
+    </div>
+  </div>
+
+  <!-- ==================== GATE 2: MANDATORY LOGIN ==================== -->
+  <div class="gate-overlay" id="loginGate">
+    <div class="gate-card">
+      <div class="gate-icon">🛡️</div>
+      <h2 id="loginClubTitle">تسجيل الدخول للنظام</h2>
+      <p class="sub">الرجاء إدخال اسم المستخدم وكلمة المرور للوصول إلى لوحة إدارة النادي.</p>
+      <div class="ip-pill" id="loginLicenseStatus">✅ النسخة مفعّلة ومرتبطة بـ IP الجهاز</div>
+      <div class="gate-error" id="loginError"></div>
+      <form class="gate-form" onsubmit="handleGateLogin(event)">
+        <div class="form-group">
+          <label>اسم المستخدم</label>
+          <input type="text" id="gateUsername" required autocomplete="username" placeholder="أدخل اسم المستخدم" />
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="gatePassword" required autocomplete="current-password" placeholder="أدخل كلمة المرور" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">🔐 دخول للنظام</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APPLICATION SHELL ==================== -->
+  <div id="appShell">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-logo">🏋️</div>
+          <div>
+            <h1>
+              <span id="headerClubName">نادي اللياقة الذكي</span>
+              <button class="pill-btn" style="padding:3px 10px;font-size:0.74rem;" onclick="openClubSettingsModal()">✏️ تعديل</button>
+            </h1>
+            <p id="headerClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="pill-btn" id="activeUserBadge" onclick="openLoginModal()">👤 الأدمن الرئيسي</span>
+          <button class="pill-btn" id="installPwaBtn" style="display:none;" onclick="triggerPwaInstall()">📲 تثبيت التطبيق</button>
+          <button class="pill-btn pill-btn-danger" onclick="logoutUser()">🚪 خروج</button>
         </div>
       </div>
+    </header>
 
-      <!-- KPIs -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div>
-            <div class="stat-label">إجمالي المشتركين</div>
-            <div class="stat-value" id="statTotalMembers">0</div>
-          </div>
-          <div class="stat-icon">🏅</div>
-        </div>
-        <div class="stat-card">
-          <div>
-            <div class="stat-label">حضور اليوم</div>
-            <div class="stat-value" id="statTodayAttendance">0</div>
-          </div>
-          <div class="stat-icon">✅</div>
-        </div>
-        <div class="stat-card">
-          <div>
-            <div class="stat-label">إجمالي المدفوعات</div>
-            <div class="stat-value" id="statTotalPaid">0 د.ل</div>
-          </div>
-          <div class="stat-icon">💳</div>
-        </div>
-        <div class="stat-card">
-          <div>
-            <div class="stat-label">المبالغ المتبقية</div>
-            <div class="stat-value" id="statTotalRemaining" style="color:#d97706;">0 د.ل</div>
-          </div>
-          <div class="stat-icon">⏳</div>
-        </div>
-      </div>
+    <main class="container">
+      <!-- Sports Navigation Buttons -->
+      <nav class="nav-grid" aria-label="الأقسام الرئيسية">
+        <button class="sport-btn active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+          <span class="ico">🏠</span><span>الرئيسية</span>
+        </button>
+        <button class="sport-btn" data-tab="register" onclick="switchTab('register', this)">
+          <span class="ico">📝</span><span>تسجيل مشترك</span>
+        </button>
+        <button class="sport-btn" data-tab="members" onclick="switchTab('members', this)">
+          <span class="ico">👥</span><span>سجل المشتركين</span>
+        </button>
+        <button class="sport-btn" data-tab="barcode" onclick="switchTab('barcode', this)">
+          <span class="ico">📷</span><span>الدخول بالباركود</span>
+        </button>
+        <button class="sport-btn" data-tab="users" id="usersNavBtn" onclick="switchTab('users', this)">
+          <span class="ico">🛡️</span><span>المستخدمون</span>
+        </button>
+        <button class="sport-btn" data-tab="location" onclick="switchTab('location', this)">
+          <span class="ico">📍</span><span>العنوان والتثبيت</span>
+        </button>
+      </nav>
 
-      <!-- Quick QR Preview + Map Preview -->
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">📍 باركود عنوان النادي والخريطة المباشرة</h2>
-            <button class="btn btn-secondary btn-sm" onclick="switchTab('location', document.querySelector('[data-tab=location]'))">⚙️ تعديل العنوان</button>
+      <!-- 1. DASHBOARD -->
+      <section id="tab-dashboard" class="section active">
+        <div class="tip-banner">
+          <div class="tip-text">
+            <h3 id="tipPeriodTitle">☀️ تلميح الصباح الرياضي</h3>
+            <p id="tipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
           </div>
-          <p id="dashAddressText" style="margin:0 0 12px;font-weight:700;color:#334155;">سبها، ليبيا</p>
-          <div class="qr-box">
-            <div id="dashLocationQr"></div>
-            <small style="margin-top:8px;color:#64748b;">امسح الباركود لفتح موقع النادي مباشرة على خرائط جوجل</small>
-          </div>
-          <iframe id="dashMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">📲 باركود تثبيت التطبيق على الهاتف</h2>
-            <button class="btn btn-primary btn-sm" onclick="printInstallPoster()">🖨️ طباعة ملصق A4</button>
-          </div>
-          <p style="margin:0 0 12px;color:#475569;font-size:0.9rem;">
-            يمكن لأي مشترك أو زائر مسح هذا الباركود لفتح التطبيق وتثبيته مباشرة على هاتفه.
-          </p>
-          <div class="qr-box">
-            <div id="dashAppQr"></div>
-            <small id="dashAppUrlLabel" style="margin-top:8px;color:#0f766e;font-weight:700;word-break:break-all;"></small>
-          </div>
-          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-success" onclick="exportMembersExcel()">📊 تصدير المشتركين (Excel)</button>
-            <button class="btn btn-secondary" onclick="switchTab('register', document.querySelector('[data-tab=register]'))">➕ تسجيل مشترك جديد</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. REGISTRATION FORM -->
-    <section id="tab-register" class="section">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title" id="regFormTitle">📝 استمارة تسجيل مشترك جديد</h2>
-          <button class="btn btn-secondary btn-sm" onclick="resetRegistrationForm()">🔄 تفريغ الحقول</button>
-        </div>
-
-        <form id="memberForm" onsubmit="saveMember(event)">
-          <input type="hidden" id="editMemberId" />
-
-          <!-- Basic Info -->
-          <div class="form-section-title">1️⃣ البيانات الأساسية والبدنية</div>
-          <div class="grid-3">
-            <div class="form-group">
-              <label>الاسم الكامل *</label>
-              <input type="text" id="mName" required placeholder="مثال: سارة محمد علي" />
-            </div>
-            <div class="form-group">
-              <label>العمر (سنة) *</label>
-              <input type="number" id="mAge" required min="8" max="100" placeholder="25" />
-            </div>
-            <div class="form-group">
-              <label>رقم الهاتف *</label>
-              <input type="tel" id="mPhone" required placeholder="09XXXXXXXX" />
-            </div>
-            <div class="form-group">
-              <label>الوزن (كجم) *</label>
-              <input type="number" step="0.1" id="mWeight" required placeholder="68" oninput="calcBMI()" />
-            </div>
-            <div class="form-group">
-              <label>الطول (سم) *</label>
-              <input type="number" step="0.1" id="mHeight" required placeholder="165" oninput="calcBMI()" />
-            </div>
-            <div class="form-group">
-              <label>مؤشر كتلة الجسم (BMI - تلقائي)</label>
-              <input type="text" id="mBmiDisplay" readonly placeholder="يحسب تلقائياً" style="background:#f0fdfa;font-weight:700;color:#0f766e;" />
-            </div>
-          </div>
-
-          <!-- Medical & Injuries -->
-          <div class="form-section-title">2️⃣ الحالة الصحية والأمراض والإصابات السابقة</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>هل تعاني من أمراض مزمنة؟</label>
-              <select id="mHasDisease" onchange="toggleDiseaseFields()">
-                <option value="لا">لا</option>
-                <option value="نعم">نعم</option>
-              </select>
-              <div id="diseaseBox" style="display:none;margin-top:8px;">
-                <div class="checkbox-group">
-                  <label class="chip-check"><input type="checkbox" name="diseases" value="السكري" /> السكري</label>
-                  <label class="chip-check"><input type="checkbox" name="diseases" value="ضغط الدم" /> ضغط الدم</label>
-                  <label class="chip-check"><input type="checkbox" name="diseases" value="الربو" /> الربو</label>
-                  <label class="chip-check"><input type="checkbox" name="diseases" value="أمراض القلب" /> أمراض القلب</label>
-                  <label class="chip-check"><input type="checkbox" name="diseases" value="الغدة الدرقية" /> الغدة الدرقية</label>
-                </div>
-                <input type="text" id="mOtherDisease" placeholder="اذكر أي مرض آخر أو تفاصيل..." style="margin-top:8px;" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>هل تعرضت لإصابات رياضية أو جسدية سابقاً؟</label>
-              <select id="mHasInjury" onchange="toggleInjuryFields()">
-                <option value="لا">لا</option>
-                <option value="نعم">نعم</option>
-              </select>
-              <div id="injuryBox" style="display:none;margin-top:8px;">
-                <input type="text" id="mInjuryLocation" placeholder="مكان الإصابة (مثال: الركبة اليمنى، أسفل الظهر، الكتف...)" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Body Measurements -->
-          <div class="form-section-title">3️⃣ قياسات أجزاء الجسم (بالسنتيمتر - سم)</div>
-          <div class="grid-4">
-            <div class="form-group">
-              <label>الذراع اليمنى (سم)</label>
-              <input type="number" step="0.1" id="mArmRight" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الذراع اليسرى (سم)</label>
-              <input type="number" step="0.1" id="mArmLeft" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الفخذ الأيمن (سم)</label>
-              <input type="number" step="0.1" id="mThighRight" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الفخذ الأيسر (سم)</label>
-              <input type="number" step="0.1" id="mThighLeft" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>المؤخرة / الأرداف (سم)</label>
-              <input type="number" step="0.1" id="mGlutes" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الخصر (سم)</label>
-              <input type="number" step="0.1" id="mWaist" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الصدر (سم)</label>
-              <input type="number" step="0.1" id="mChest" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>الأكتاف (سم)</label>
-              <input type="number" step="0.1" id="mShoulders" placeholder="0" />
-            </div>
-          </div>
-
-          <!-- Schedule & Coach -->
-          <div class="form-section-title">4️⃣ موعد التمارين واسم المدربة</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>فترة التمارين *</label>
-              <select id="mShift" required>
-                <option value="صباحي">الفترة الصباحية (صباحاً)</option>
-                <option value="مسائي">الفترة المسائية (مساءً)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>اسم المدربة *</label>
-              <input type="text" id="mCoach" required placeholder="مثال: كابتن أمل" />
-            </div>
-          </div>
-
-          <!-- Financial Section -->
-          <div class="form-section-title">5️⃣ الجانب المالي والدفع</div>
-          <div class="grid-4">
-            <div class="form-group">
-              <label>قيمة الاشتراك الكلية (د.ل) *</label>
-              <input type="number" step="0.5" id="mTotalFee" required placeholder="150" oninput="calcRemaining()" />
-            </div>
-            <div class="form-group">
-              <label>المبلغ المدفوع (د.ل) *</label>
-              <input type="number" step="0.5" id="mPaidAmount" required placeholder="150" oninput="calcRemaining()" />
-            </div>
-            <div class="form-group">
-              <label>المبلغ المتبقي (تلقائي)</label>
-              <input type="number" id="mRemaining" readonly style="background:#fffbeb;font-weight:800;color:#b45309;" />
-            </div>
-            <div class="form-group">
-              <label>طريقة الدفع *</label>
-              <select id="mPaymentMethod" required>
-                <option value="نقدي">نقدي (كاش)</option>
-                <option value="بطاقة مصرفية">بطاقة مصرفية</option>
-                <option value="تحويل بنكي">تحويل بنكي</option>
-                <option value="سداد / تداول">سداد / تداول</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid-2" style="margin-top:12px;">
-            <div class="form-group">
-              <label>تاريخ الدفع / التسجيل</label>
-              <input type="date" id="mPayDate" />
-            </div>
-            <div class="form-group">
-              <label>ملاحظات مالية أو تدريبية</label>
-              <input type="text" id="mNotes" placeholder="أي ملاحظات إضافية..." />
-            </div>
-          </div>
-
-          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
-            <button type="submit" class="btn btn-primary">💾 حفظ البيانات وإصدار الباركود</button>
-            <button type="button" class="btn btn-secondary" onclick="resetRegistrationForm()">إلغاء</button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- 3. MEMBERS DIRECTORY -->
-    <section id="tab-members" class="section">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">👥 سجل المشتركين</h2>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-success btn-sm" onclick="exportMembersExcel()">📊 تصدير Excel (.xlsx)</button>
-            <button class="btn btn-secondary btn-sm" onclick="exportMembersCSV()">📄 تصدير CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleTipPeriod()">🔄 تبديل صباح/مساء</button>
+            <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
           </div>
         </div>
 
-        <div class="grid-3" style="margin-bottom:14px;">
-          <input type="text" id="searchMember" placeholder="🔍 ابحث بالاسم أو الهاتف أو الباركود..." oninput="renderMembersTable()" />
-          <select id="filterShift" onchange="renderMembersTable()">
-            <option value="">كل الفترات</option>
-            <option value="صباحي">الفترة الصباحية</option>
-            <option value="مسائي">الفترة المسائية</option>
-          </select>
-          <select id="filterPayment" onchange="renderMembersTable()">
-            <option value="">كل الحالات المالية</option>
-            <option value="paid">خالص الدفع</option>
-            <option value="due">عليه متبقي</option>
-          </select>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>الباركود</th>
-                <th>الاسم</th>
-                <th>العمر</th>
-                <th>الهاتف</th>
-                <th>الفترة</th>
-                <th>المدربة</th>
-                <th>المدفوع / الإجمالي</th>
-                <th>الحالة المالية</th>
-                <th>إجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="membersTbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. BARCODE LOGIN & ATTENDANCE -->
-    <section id="tab-barcode" class="section">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">📷 مسح باركود العضوية وتسجيل الحضور</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">إجمالي المشتركين</div>
+              <div class="stat-value" id="statTotalMembers">0</div>
+            </div>
+            <div class="stat-icon">🏅</div>
           </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>إدخال رمز الباركود يدوياً أو بجهاز القارئ:</label>
-            <div style="display:flex;gap:8px;">
-              <input type="text" id="manualBarcodeInput" placeholder="مثال: CLUB-1001" onkeydown="if(event.key==='Enter') checkInByBarcode()" />
-              <button class="btn btn-primary" onclick="checkInByBarcode()">✅ دخول</button>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">حضور اليوم</div>
+              <div class="stat-value" id="statTodayAttendance">0</div>
+            </div>
+            <div class="stat-icon">✅</div>
+          </div>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">إجمالي المدفوعات</div>
+              <div class="stat-value" id="statTotalPaid">0 د.ل</div>
+            </div>
+            <div class="stat-icon">💳</div>
+          </div>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">المبالغ المتبقية</div>
+              <div class="stat-value" id="statTotalRemaining" style="color:#d97706;">0 د.ل</div>
+            </div>
+            <div class="stat-icon">⏳</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📍 باركود عنوان النادي والخريطة المباشرة</h2>
+              <button class="btn btn-secondary btn-sm" onclick="switchTab('location', document.querySelector('[data-tab=location]'))">⚙️ تعديل العنوان</button>
+            </div>
+            <p id="dashAddressText" style="margin:0 0 12px;font-weight:700;color:#334155;">سبها، ليبيا</p>
+            <div class="qr-box">
+              <div id="dashLocationQr"></div>
+              <small style="margin-top:8px;color:#64748b;">امسح الباركود لفتح موقع النادي مباشرة على خرائط جوجل</small>
+            </div>
+            <iframe id="dashMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📲 باركود تثبيت التطبيق على الهاتف</h2>
+              <button class="btn btn-primary btn-sm" onclick="printInstallPoster()">🖨️ طباعة ملصق A4</button>
+            </div>
+            <p style="margin:0 0 12px;color:#475569;font-size:0.9rem;">
+              يمكن لأي مشترك أو زائر مسح هذا الباركود لفتح التطبيق وتثبيته مباشرة على هاتفه.
+            </p>
+            <div class="qr-box">
+              <div id="dashAppQr"></div>
+              <small id="dashAppUrlLabel" style="margin-top:8px;color:#0f766e;font-weight:700;word-break:break-all;"></small>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-success" onclick="exportMembersExcel()">📊 تصدير المشتركين (Excel)</button>
+              <button class="btn btn-secondary" onclick="switchTab('register', document.querySelector('[data-tab=register]'))">➕ تسجيل مشترك جديد</button>
             </div>
           </div>
-          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-            <button class="btn btn-success btn-sm" onclick="startCameraScanner()">📸 تشغيل الكاميرا للمسح</button>
-            <button class="btn btn-danger btn-sm" onclick="stopCameraScanner()">⏹️ إيقاف الكاميرا</button>
-          </div>
-          <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden;"></div>
         </div>
+      </section>
 
+      <!-- 2. REGISTRATION FORM -->
+      <section id="tab-register" class="section">
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">🪪 نتيجة المسح وملف المشترك</h2>
+            <h2 class="card-title" id="regFormTitle">📝 استمارة تسجيل مشترك جديد</h2>
+            <button class="btn btn-secondary btn-sm" onclick="resetRegistrationForm()">🔄 تفريغ الحقول</button>
           </div>
-          <div id="scanResultBox" style="color:#64748b;text-align:center;padding:24px 10px;">
-            قم بمسح باركود المشترك أو إدخاله لعرض بياناته الكاملة وتسجيل حضوره تلقائياً.
-          </div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">📋 سجل الحضور اليومي</h2>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>الوقت والتاريخ</th>
-                <th>الباركود</th>
-                <th>اسم المشترك</th>
-                <th>الفترة</th>
-                <th>المدربة</th>
-              </tr>
-            </thead>
-            <tbody id="attendanceTbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+          <form id="memberForm" onsubmit="saveMember(event)">
+            <input type="hidden" id="editMemberId" />
 
-    <!-- 5. USERS & ROLES -->
-    <section id="tab-users" class="section">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">🛡️ إدارة المستخدمين والصلاحيات</h2>
-          <button class="btn btn-primary btn-sm" onclick="openLoginModal()">🔑 تبديل المستخدم</button>
-        </div>
+            <div class="form-section-title">1️⃣ البيانات الأساسية والبدنية</div>
+            <div class="grid-3">
+              <div class="form-group">
+                <label>الاسم الكامل *</label>
+                <input type="text" id="mName" required placeholder="مثال: سارة محمد علي" />
+              </div>
+              <div class="form-group">
+                <label>العمر (سنة) *</label>
+                <input type="number" id="mAge" required min="8" max="100" placeholder="25" />
+              </div>
+              <div class="form-group">
+                <label>رقم الهاتف *</label>
+                <input type="tel" id="mPhone" required placeholder="09XXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label>الوزن (كجم) *</label>
+                <input type="number" step="0.1" id="mWeight" required placeholder="68" oninput="calcBMI()" />
+              </div>
+              <div class="form-group">
+                <label>الطول (سم) *</label>
+                <input type="number" step="0.1" id="mHeight" required placeholder="165" oninput="calcBMI()" />
+              </div>
+              <div class="form-group">
+                <label>مؤشر كتلة الجسم (BMI - تلقائي)</label>
+                <input type="text" id="mBmiDisplay" readonly placeholder="يحسب تلقائياً" style="background:#f0fdfa;font-weight:700;color:#0f766e;" />
+              </div>
+            </div>
 
-        <form id="userForm" onsubmit="addUser(event)" class="grid-4" style="margin-bottom:18px;align-items:end;">
-          <div class="form-group">
-            <label>الاسم الكامل *</label>
-            <input type="text" id="uFullName" required placeholder="مثال: أمل السالم" />
+            <div class="form-section-title">2️⃣ الحالة الصحية والأمراض والإصابات السابقة</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>هل تعاني من أمراض مزمنة؟</label>
+                <select id="mHasDisease" onchange="toggleDiseaseFields()">
+                  <option value="لا">لا</option>
+                  <option value="نعم">نعم</option>
+                </select>
+                <div id="diseaseBox" style="display:none;margin-top:8px;">
+                  <div class="checkbox-group">
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="السكري" /> السكري</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="ضغط الدم" /> ضغط الدم</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="الربو" /> الربو</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="أمراض القلب" /> أمراض القلب</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="الغدة الدرقية" /> الغدة الدرقية</label>
+                  </div>
+                  <input type="text" id="mOtherDisease" placeholder="اذكر أي مرض آخر أو تفاصيل..." style="margin-top:8px;" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>هل تعرضت لإصابات رياضية أو جسدية سابقاً؟</label>
+                <select id="mHasInjury" onchange="toggleInjuryFields()">
+                  <option value="لا">لا</option>
+                  <option value="نعم">نعم</option>
+                </select>
+                <div id="injuryBox" style="display:none;margin-top:8px;">
+                  <input type="text" id="mInjuryLocation" placeholder="مكان الإصابة (مثال: الركبة اليمنى، أسفل الظهر، الكتف...)" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section-title">3️⃣ قياسات أجزاء الجسم (بالسنتيمتر - سم)</div>
+            <div class="grid-4">
+              <div class="form-group"><label>الذراع اليمنى (سم)</label><input type="number" step="0.1" id="mArmRight" placeholder="0" /></div>
+              <div class="form-group"><label>الذراع اليسرى (سم)</label><input type="number" step="0.1" id="mArmLeft" placeholder="0" /></div>
+              <div class="form-group"><label>الفخذ الأيمن (سم)</label><input type="number" step="0.1" id="mThighRight" placeholder="0" /></div>
+              <div class="form-group"><label>الفخذ الأيسر (سم)</label><input type="number" step="0.1" id="mThighLeft" placeholder="0" /></div>
+              <div class="form-group"><label>المؤخرة / الأرداف (سم)</label><input type="number" step="0.1" id="mGlutes" placeholder="0" /></div>
+              <div class="form-group"><label>الخصر (سم)</label><input type="number" step="0.1" id="mWaist" placeholder="0" /></div>
+              <div class="form-group"><label>الصدر (سم)</label><input type="number" step="0.1" id="mChest" placeholder="0" /></div>
+              <div class="form-group"><label>الأكتاف (سم)</label><input type="number" step="0.1" id="mShoulders" placeholder="0" /></div>
+            </div>
+
+            <div class="form-section-title">4️⃣ موعد التمارين واسم المدربة</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>فترة التمارين *</label>
+                <select id="mShift" required>
+                  <option value="صباحي">الفترة الصباحية (صباحاً)</option>
+                  <option value="مسائي">الفترة المسائية (مساءً)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>اسم المدربة *</label>
+                <input type="text" id="mCoach" required placeholder="مثال: كابتن أمل" />
+              </div>
+            </div>
+
+            <div class="form-section-title">5️⃣ الجانب المالي والدفع</div>
+            <div class="grid-4">
+              <div class="form-group">
+                <label>قيمة الاشتراك الكلية (د.ل) *</label>
+                <input type="number" step="0.5" id="mTotalFee" required placeholder="150" oninput="calcRemaining()" />
+              </div>
+              <div class="form-group">
+                <label>المبلغ المدفوع (د.ل) *</label>
+                <input type="number" step="0.5" id="mPaidAmount" required placeholder="150" oninput="calcRemaining()" />
+              </div>
+              <div class="form-group">
+                <label>المبلغ المتبقي (تلقائي)</label>
+                <input type="number" id="mRemaining" readonly style="background:#fffbeb;font-weight:800;color:#b45309;" />
+              </div>
+              <div class="form-group">
+                <label>طريقة الدفع *</label>
+                <select id="mPaymentMethod" required>
+                  <option value="نقدي">نقدي (كاش)</option>
+                  <option value="بطاقة مصرفية">بطاقة مصرفية</option>
+                  <option value="تحويل بنكي">تحويل بنكي</option>
+                  <option value="سداد / تداول">سداد / تداول</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="form-group"><label>تاريخ الدفع / التسجيل</label><input type="date" id="mPayDate" /></div>
+              <div class="form-group"><label>ملاحظات مالية أو تدريبية</label><input type="text" id="mNotes" placeholder="أي ملاحظات إضافية..." /></div>
+            </div>
+
+            <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary">💾 حفظ البيانات وإصدار الباركود</button>
+              <button type="button" class="btn btn-secondary" onclick="resetRegistrationForm()">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. MEMBERS DIRECTORY -->
+      <section id="tab-members" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">👥 سجل المشتركين</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" onclick="exportMembersExcel()">📊 تصدير Excel (.xlsx)</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportMembersCSV()">📄 تصدير CSV</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label>اسم المستخدم *</label>
-            <input type="text" id="uUsername" required placeholder="amal_coach" />
-          </div>
-          <div class="form-group">
-            <label>كلمة المرور *</label>
-            <input type="password" id="uPassword" required placeholder="****" />
-          </div>
-          <div class="form-group">
-            <label>الدور الوظيفي</label>
-            <select id="uRole">
-              <option value="مدربة">مدربة</option>
-              <option value="استقبال">استقبال</option>
-              <option value="محاسب">محاسب</option>
-              <option value="أدمن">أدمن</option>
+
+          <div class="grid-3" style="margin-bottom:14px;">
+            <input type="text" id="searchMember" placeholder="🔍 ابحث بالاسم أو الهاتف أو الباركود..." oninput="renderMembersTable()" />
+            <select id="filterShift" onchange="renderMembersTable()">
+              <option value="">كل الفترات</option>
+              <option value="صباحي">الفترة الصباحية</option>
+              <option value="مسائي">الفترة المسائية</option>
+            </select>
+            <select id="filterPayment" onchange="renderMembersTable()">
+              <option value="">كل الحالات المالية</option>
+              <option value="paid">خالص الدفع</option>
+              <option value="due">عليه متبقي</option>
             </select>
           </div>
-          <div>
-            <button type="submit" class="btn btn-success" style="width:100%;">➕ إضافة مستخدم</button>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الباركود</th>
+                  <th>الاسم</th>
+                  <th>العمر</th>
+                  <th>الهاتف</th>
+                  <th>الفترة</th>
+                  <th>المدربة</th>
+                  <th>المدفوع / الإجمالي</th>
+                  <th>الحالة المالية</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="membersTbody"></tbody>
+            </table>
           </div>
-        </form>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>الاسم</th>
-                <th>اسم المستخدم</th>
-                <th>الصلاحية</th>
-                <th>بيانات التواصل</th>
-                <th>الحالة</th>
-                <th>إجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="usersTbody"></tbody>
-          </table>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- 6. LOCATION & APP INSTALL -->
-    <section id="tab-location" class="section">
-      <div class="grid-2">
+      <!-- 4. BARCODE LOGIN & ATTENDANCE -->
+      <section id="tab-barcode" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📷 مسح باركود العضوية وتسجيل الحضور</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>إدخال رمز الباركود يدوياً أو بجهاز القارئ:</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="manualBarcodeInput" placeholder="مثال: CLUB-1001" onkeydown="if(event.key==='Enter') checkInByBarcode()" />
+                <button class="btn btn-primary" onclick="checkInByBarcode()">✅ دخول</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" onclick="startCameraScanner()">📸 تشغيل الكاميرا للمسح</button>
+              <button class="btn btn-danger btn-sm" onclick="stopCameraScanner()">⏹️ إيقاف الكاميرا</button>
+            </div>
+            <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden;"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">🪪 نتيجة المسح وملف المشترك</h2>
+            </div>
+            <div id="scanResultBox" style="color:#64748b;text-align:center;padding:24px 10px;">
+              قم بمسح باركود المشترك أو إدخاله لعرض بياناته الكاملة وتسجيل حضوره تلقائياً.
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">📍 إعدادات عنوان النادي والخريطة</h2>
+            <h2 class="card-title">📋 سجل الحضور اليومي</h2>
           </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>عنوان النادي (كتابةً):</label>
-            <input type="text" id="clubAddressInput" placeholder="مثال: سبها - شارع جمال عبد الناصر" />
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الوقت والتاريخ</th>
+                  <th>الباركود</th>
+                  <th>اسم المشترك</th>
+                  <th>الفترة</th>
+                  <th>المدربة</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTbody"></tbody>
+            </table>
           </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>رابط خرائط جوجل (اختياري - لصق الرابط المباشر):</label>
-            <input type="url" id="clubMapUrlInput" placeholder="https://maps.google.com/?q=..." />
+        </div>
+      </section>
+
+      <!-- 5. USERS & LICENSE -->
+      <section id="tab-users" class="section">
+        <div class="card" id="licenseInfoCard">
+          <div class="card-header">
+            <h2 class="card-title">🔑 حالة التفعيل والربط بـ IP الجهاز</h2>
+            <button class="btn btn-danger btn-sm" id="deactivateBtn" onclick="deactivateLicense()">🔄 إلغاء تفعيل هذا الجهاز</button>
           </div>
-          <button class="btn btn-primary" onclick="saveClubLocation()">💾 حفظ وتحديث الباركود والخريطة</button>
-          <div class="qr-box" style="margin-top:16px;">
-            <div id="settingsLocationQr"></div>
-            <small style="margin-top:6px;color:#64748b;">باركود عنوان النادي</small>
-          </div>
+          <div class="grid-3" id="licenseDetailsGrid" style="font-size:0.9rem;"></div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">📲 إعدادات باركود تثبيت التطبيق (PWA)</h2>
+            <h2 class="card-title">🛡️ إدارة المستخدمين والصلاحيات</h2>
+            <button class="btn btn-primary btn-sm" onclick="openLoginModal()">🔑 تبديل المستخدم</button>
           </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>رابط استضافة التطبيق (GitHub Pages / Render):</label>
-            <input type="url" id="appUrlInput" placeholder="https://tabnet2020-coder.github.io/sports-club-app/" />
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-            <button class="btn btn-primary" onclick="saveAppUrl()">💾 تحديث باركود التثبيت</button>
-            <button class="btn btn-success" onclick="printInstallPoster()">🖨️ طباعة ملصق A4 للتثبيت</button>
-          </div>
-          <div class="qr-box">
-            <div id="settingsAppQr"></div>
-            <small style="margin-top:6px;color:#0f766e;font-weight:700;">امسح لتثبيت التطبيق على الهاتف</small>
+
+          <form id="userForm" onsubmit="addUser(event)" class="grid-4" style="margin-bottom:18px;align-items:end;">
+            <div class="form-group">
+              <label>الاسم الكامل *</label>
+              <input type="text" id="uFullName" required placeholder="مثال: أمل السالم" />
+            </div>
+            <div class="form-group">
+              <label>اسم المستخدم *</label>
+              <input type="text" id="uUsername" required placeholder="amal_coach" />
+            </div>
+            <div class="form-group">
+              <label>كلمة المرور *</label>
+              <input type="password" id="uPassword" required placeholder="****" />
+            </div>
+            <div class="form-group">
+              <label>الدور الوظيفي</label>
+              <select id="uRole">
+                <option value="مدربة">مدربة</option>
+                <option value="استقبال">استقبال</option>
+                <option value="محاسب">محاسب</option>
+                <option value="أدمن">أدمن</option>
+              </select>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-success" style="width:100%;">➕ إضافة مستخدم</button>
+            </div>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الاسم</th>
+                  <th>اسم المستخدم</th>
+                  <th>الصلاحية</th>
+                  <th>الحالة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="usersTbody"></tbody>
+            </table>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+
+      <!-- 6. LOCATION & APP INSTALL -->
+      <section id="tab-location" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📍 إعدادات عنوان النادي والخريطة</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>عنوان النادي (كتابةً):</label>
+              <input type="text" id="clubAddressInput" placeholder="مثال: سبها - شارع جمال عبد الناصر" />
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>رابط خرائط جوجل (اختياري - لصق الرابط المباشر):</label>
+              <input type="url" id="clubMapUrlInput" placeholder="https://maps.google.com/?q=..." />
+            </div>
+            <button class="btn btn-primary" onclick="saveClubLocation()">💾 حفظ وتحديث الباركود والخريطة</button>
+            <div class="qr-box" style="margin-top:16px;">
+              <div id="settingsLocationQr"></div>
+              <small style="margin-top:6px;color:#64748b;">باركود عنوان النادي</small>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📲 إعدادات باركود تثبيت التطبيق (PWA)</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>رابط استضافة التطبيق (Render / GitHub Pages):</label>
+              <input type="url" id="appUrlInput" placeholder="https://sports-club-app.onrender.com" />
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+              <button class="btn btn-primary" onclick="saveAppUrl()">💾 تحديث باركود التثبيت</button>
+              <button class="btn btn-success" onclick="printInstallPoster()">🖨️ طباعة ملصق A4 للتثبيت</button>
+            </div>
+            <div class="qr-box">
+              <div id="settingsAppQr"></div>
+              <small style="margin-top:6px;color:#0f766e;font-weight:700;">امسح لتثبيت التطبيق على الهاتف</small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <!-- PERSISTENT BOTTOM FOOTER -->
   <footer class="persistent-footer">
@@ -1074,23 +1108,22 @@
     </div>
   </div>
 
-  <!-- MODAL: Login / Switch User -->
+  <!-- MODAL: Switch User (NO credentials hints shown) -->
   <div class="modal-backdrop" id="loginModal">
     <div class="modal">
       <div class="card-header">
-        <h3 class="card-title">🔑 تسجيل الدخول / تبديل المستخدم</h3>
+        <h3 class="card-title">🔑 تبديل المستخدم</h3>
         <button class="btn btn-secondary btn-sm" onclick="closeModal('loginModal')">✖</button>
       </div>
-      <p style="font-size:0.85rem;color:#64748b;margin-top:0;">الحساب الافتراضي للأدمن الرئيسي: <strong>admin</strong> / كلمة المرور: <strong>1234</strong></p>
       <div class="form-group" style="margin-bottom:10px;">
         <label>اسم المستخدم:</label>
-        <input type="text" id="loginUsername" value="admin" />
+        <input type="text" id="loginUsername" autocomplete="off" placeholder="أدخل اسم المستخدم" />
       </div>
       <div class="form-group" style="margin-bottom:16px;">
         <label>كلمة المرور:</label>
-        <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter') performLogin()" />
+        <input type="password" id="loginPassword" autocomplete="off" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter') performModalLogin()" />
       </div>
-      <button class="btn btn-primary" onclick="performLogin()">دخول</button>
+      <button class="btn btn-primary" onclick="performModalLogin()">دخول</button>
     </div>
   </div>
 
@@ -1105,7 +1138,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Visitor Log (Password Protected: tabzed6699) -->
+  <!-- MODAL: Visitor Log (Password Protected) -->
   <div class="modal-backdrop" id="visitorModal">
     <div class="modal modal-lg">
       <div class="card-header">
@@ -1113,7 +1146,6 @@
         <button class="btn btn-secondary btn-sm" onclick="closeVisitorLog()">🔒 قفل وإغلاق</button>
       </div>
 
-      <!-- Password Gate -->
       <div id="visitorAuthGate">
         <p style="color:#475569;margin-top:0;">أدخل كلمة المرور الخاصة بمسؤول النظام للوصول إلى سجل الزوار:</p>
         <div style="display:flex;gap:8px;max-width:420px;">
@@ -1122,7 +1154,6 @@
         </div>
       </div>
 
-      <!-- Protected Content -->
       <div id="visitorLogContent" style="display:none;">
         <div class="stats-grid" style="margin-bottom:12px;">
           <div class="stat-card">
@@ -1145,10 +1176,10 @@
               <tr>
                 <th>الوقت والتاريخ</th>
                 <th>رقم الجلسة</th>
+                <th>IP</th>
                 <th>الإجراء</th>
                 <th>المستخدم</th>
                 <th>الجهاز / المتصفح</th>
-                <th>الشاشة</th>
               </tr>
             </thead>
             <tbody id="visitorTbody"></tbody>
@@ -1162,17 +1193,63 @@
   <div id="printArea"></div>
 
   <script>
-    // ==================== STORAGE KEYS & DEFAULTS ====================
+    // ==================== SECURITY & ACTIVATION CONFIG ====================
     const KEYS = {
       CLUB: 'sfc_club_settings_v1',
       MEMBERS: 'sfc_members_v1',
-      USERS: 'sfc_users_v1',
+      USERS: 'sfc_users_v2',
       ATTENDANCE: 'sfc_attendance_v1',
       VISITORS: 'sfc_visitors_v1',
-      ACTIVE_USER: 'sfc_active_user_v1'
+      LICENSE: 'sfc_license_ip_v1',
+      SESSION_USER: 'sfc_session_user_v2'
     };
 
     const VISITOR_PASS = 'tabzed6699';
+
+    // Valid Activation Keys (Hashed — plain keys are in private activation_keys.txt)
+    const VALID_KEY_HASHES = [
+      '878135ffd0a6d9c9',
+      '52ebc4b70ff32091',
+      'a8e475301de6337d',
+      'e70d9445bc099ebf',
+      '61d6a1ec8fcd00e9',
+      '9db08e2af8608fd5',
+      '27f52170a69f9ecd',
+      '435b297f54909a01',
+      '79fa4ae06cf11149',
+      'f6ccf4da281f05c7',
+      '2c77bb8113b6e609',
+      'd6e92633bdddb9f5',
+      'a0cbc55976913c51',
+      'e823d0ef466af71b',
+      'a18d1e9dfe8d1299',
+      '5999a269293d1e6f',
+      '25c88b2dd7617e51',
+      '61699d6d4261b8c5',
+      '1d2ebc264ba8bf17',
+      '4427c1aa1e4dbb0d',
+      '4882704b29fff4bb',
+      '7fe905cf1707cd59',
+      '617792a1504ca76d',
+      'b3ae3eeb708afb43',
+      'bf36f87182ddb687'
+    ];
+
+    function hashSerial(s) {
+      const salt = 'SFC#2026@MO7EB!IP_LOCK';
+      const text = salt + String(s || '').trim().toUpperCase();
+      let h1 = 0x811c9dc5;
+      let h2 = 0x9e3779b9;
+      for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        h1 ^= c;
+        h1 = Math.imul(h1, 0x01000193) >>> 0;
+        h2 ^= (c + 0x55);
+        h2 = (((h2 << 5) - h2 + c) >>> 0);
+        h2 = Math.imul(h2, 0x01000193) >>> 0;
+      }
+      return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+    }
 
     const DEFAULT_CLUB = {
       name: 'نادي اللياقة الذكي',
@@ -1184,12 +1261,10 @@
 
     const DEFAULT_ADMIN = {
       id: 'ADMIN-MAIN',
-      fullName: 'عمر الطابوني',
-      username: 'admin',
-      password: '1234',
-      role: 'أدمن رئيسي',
-      email: 'tabnet2020@gmail.com',
-      phone: '0923482662',
+      fullName: 'الأدمن الرئيسي',
+      username: 'mo7eb',
+      password: 'tabzed6699@#',
+      role: 'الأدمن الرئيسي',
       active: true,
       protected: true
     };
@@ -1209,13 +1284,31 @@
       ]
     };
 
+    function loadUsersWithMigration() {
+      let users = JSON.parse(localStorage.getItem(KEYS.USERS) || 'null');
+      if (!users) {
+        // Migrate non-admin users from old v1 key if present
+        const oldUsers = JSON.parse(localStorage.getItem('sfc_users_v1') || '[]');
+        const others = oldUsers.filter(u => u.id !== 'ADMIN-MAIN');
+        users = [DEFAULT_ADMIN, ...others];
+      } else {
+        const idx = users.findIndex(u => u.id === 'ADMIN-MAIN');
+        if (idx === -1) users.unshift(DEFAULT_ADMIN);
+        else users[idx] = { ...DEFAULT_ADMIN };
+      }
+      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+      return users;
+    }
+
     let state = {
       club: JSON.parse(localStorage.getItem(KEYS.CLUB) || 'null') || { ...DEFAULT_CLUB },
       members: JSON.parse(localStorage.getItem(KEYS.MEMBERS) || '[]'),
-      users: JSON.parse(localStorage.getItem(KEYS.USERS) || 'null') || [DEFAULT_ADMIN],
+      users: loadUsersWithMigration(),
       attendance: JSON.parse(localStorage.getItem(KEYS.ATTENDANCE) || '[]'),
       visitors: JSON.parse(localStorage.getItem(KEYS.VISITORS) || '[]'),
-      activeUser: JSON.parse(localStorage.getItem(KEYS.ACTIVE_USER) || 'null') || DEFAULT_ADMIN,
+      license: JSON.parse(localStorage.getItem(KEYS.LICENSE) || 'null'),
+      activeUser: JSON.parse(sessionStorage.getItem(KEYS.SESSION_USER) || 'null'),
+      currentIp: null,
       tipPeriod: new Date().getHours() < 15 ? 'morning' : 'evening',
       tipIndex: 0,
       sessionId: 'SES-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
@@ -1223,25 +1316,186 @@
       deferredPrompt: null
     };
 
-    // Ensure main admin always exists
-    if (!state.users.some(u => u.id === 'ADMIN-MAIN')) {
-      state.users.unshift(DEFAULT_ADMIN);
-    }
-
     function persist() {
       localStorage.setItem(KEYS.CLUB, JSON.stringify(state.club));
       localStorage.setItem(KEYS.MEMBERS, JSON.stringify(state.members));
       localStorage.setItem(KEYS.USERS, JSON.stringify(state.users));
       localStorage.setItem(KEYS.ATTENDANCE, JSON.stringify(state.attendance));
       localStorage.setItem(KEYS.VISITORS, JSON.stringify(state.visitors));
-      localStorage.setItem(KEYS.ACTIVE_USER, JSON.stringify(state.activeUser));
+      if (state.license) localStorage.setItem(KEYS.LICENSE, JSON.stringify(state.license));
+      else localStorage.removeItem(KEYS.LICENSE);
+      if (state.activeUser) sessionStorage.setItem(KEYS.SESSION_USER, JSON.stringify(state.activeUser));
+      else sessionStorage.removeItem(KEYS.SESSION_USER);
     }
 
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3200);
+      setTimeout(() => t.classList.remove('show'), 3400);
+    }
+
+    // ==================== PUBLIC IP DETECTION & LICENSE CHECK ====================
+    async function fetchPublicIp() {
+      const endpoints = [
+        async () => {
+          const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+          const d = await r.json();
+          return d.ip;
+        },
+        async () => {
+          const r = await fetch('https://api64.ipify.org?format=json', { cache: 'no-store' });
+          const d = await r.json();
+          return d.ip;
+        },
+        async () => {
+          const r = await fetch('https://ipwho.is/', { cache: 'no-store' });
+          const d = await r.json();
+          return d.ip;
+        }
+      ];
+      for (const fn of endpoints) {
+        try {
+          const ip = await fn();
+          if (ip && typeof ip === 'string') return ip.trim();
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function enforceSecurityGates() {
+      const activationGate = document.getElementById('activationGate');
+      const loginGate = document.getElementById('loginGate');
+      const appShell = document.getElementById('appShell');
+      const ipPill = document.getElementById('detectedIpPill');
+      const actErr = document.getElementById('activationError');
+
+      activationGate.classList.remove('active');
+      loginGate.classList.remove('active');
+      appShell.classList.remove('unlocked');
+
+      state.currentIp = await fetchPublicIp();
+      if (state.currentIp) {
+        ipPill.textContent = '🌐 IP الجهاز الحالي: ' + state.currentIp;
+      } else {
+        ipPill.textContent = '⚠️ تعذر الاتصال بالإنترنت للتحقق من IP';
+      }
+
+      // Step 1: Check License & IP Binding
+      const lic = state.license;
+      const isValidStoredHash = lic && VALID_KEY_HASHES.includes(lic.keyHash);
+
+      if (!lic || !isValidStoredHash) {
+        activationGate.classList.add('active');
+        return;
+      }
+
+      // Verify IP match when online
+      if (state.currentIp && lic.boundIp && lic.boundIp !== state.currentIp) {
+        actErr.style.display = 'block';
+        actErr.innerHTML = `⛔ تم رصد تغيير في عنوان IP الجهاز!<br>العنوان المفعّل: <strong>${lic.boundIp}</strong><br>العنوان الحالي: <strong>${state.currentIp}</strong><br>يرجى إعادة التفعيل بسيريال صالح لهذا الجهاز.`;
+        activationGate.classList.add('active');
+        logVisitorAction('رفض وصول: عدم تطابق IP التفعيل');
+        return;
+      }
+
+      // Step 2: Check Mandatory User Login
+      if (!state.activeUser) {
+        document.getElementById('loginClubTitle').textContent = state.club.name + ' - تسجيل الدخول';
+        document.getElementById('loginLicenseStatus').textContent = `✅ مفعّل ومربوط بـ IP: ${lic.boundIp}`;
+        loginGate.classList.add('active');
+        return;
+      }
+
+      // Step 3: Unlock App
+      appShell.classList.add('unlocked');
+      renderAll();
+    }
+
+    async function activateLicense(e) {
+      e.preventDefault();
+      const input = document.getElementById('serialKeyInput').value.trim().toUpperCase();
+      const errBox = document.getElementById('activationError');
+      errBox.style.display = 'none';
+
+      if (!state.currentIp) {
+        state.currentIp = await fetchPublicIp();
+      }
+      if (!state.currentIp) {
+        errBox.style.display = 'block';
+        errBox.textContent = '⚠️ يلزم الاتصال بالإنترنت للتحقق من عنوان IP الجهاز وتفعيل السيريال.';
+        return;
+      }
+
+      const hashed = hashSerial(input);
+      if (!VALID_KEY_HASHES.includes(hashed)) {
+        errBox.style.display = 'block';
+        errBox.textContent = '❌ مفتاح التفعيل غير صحيح! يرجى التأكد من السيريال والمحاولة مرة أخرى.';
+        logVisitorAction('محاولة تفعيل فاشلة بسيريال خاطئ');
+        return;
+      }
+
+      state.license = {
+        keyHash: hashed,
+        maskedKey: input.slice(0, 8) + '-****-' + input.slice(-4),
+        boundIp: state.currentIp,
+        activatedAt: new Date().toLocaleString('ar-LY')
+      };
+      persist();
+      document.getElementById('serialKeyInput').value = '';
+      logVisitorAction('تفعيل النظام بنجاح على IP: ' + state.currentIp);
+      showToast('✅ تم تفعيل النظام وربطه بـ IP الجهاز بنجاح');
+      enforceSecurityGates();
+    }
+
+    function deactivateLicense() {
+      if (!state.activeUser || !state.activeUser.protected) {
+        return showToast('هذه الصلاحية للأدمن الرئيسي فقط');
+      }
+      if (!confirm('هل تريد إلغاء تفعيل هذا الجهاز؟ سيُطلب إدخال مفتاح تفعيل جديد.')) return;
+      state.license = null;
+      state.activeUser = null;
+      persist();
+      logVisitorAction('إلغاء تفعيل الجهاز من قبل الأدمن الرئيسي');
+      enforceSecurityGates();
+    }
+
+    function handleGateLogin(e) {
+      e.preventDefault();
+      const un = document.getElementById('gateUsername').value.trim();
+      const pw = document.getElementById('gatePassword').value;
+      const errBox = document.getElementById('loginError');
+      errBox.style.display = 'none';
+
+      const found = state.users.find(u => u.username === un && u.password === pw);
+      if (!found) {
+        errBox.style.display = 'block';
+        errBox.textContent = '❌ اسم المستخدم أو كلمة المرور غير صحيحة.';
+        logVisitorAction('محاولة دخول فاشلة لاسم المستخدم: ' + un);
+        return;
+      }
+      if (!found.active) {
+        errBox.style.display = 'block';
+        errBox.textContent = '⛔ هذا الحساب معطّل حالياً. تواصل مع الأدمن الرئيسي.';
+        return;
+      }
+
+      state.activeUser = found;
+      persist();
+      document.getElementById('gateUsername').value = '';
+      document.getElementById('gatePassword').value = '';
+      logVisitorAction('تسجيل دخول ناجح: ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
+      showToast('مرحباً بك، ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
+      enforceSecurityGates();
+    }
+
+    function logoutUser() {
+      if (!confirm('هل تريد تسجيل الخروج من النظام؟')) return;
+      logVisitorAction('تسجيل خروج');
+      state.activeUser = null;
+      persist();
+      stopCameraScanner();
+      enforceSecurityGates();
     }
 
     // ==================== VISITOR LOGGING ====================
@@ -1254,13 +1508,16 @@
     }
 
     function logVisitorAction(action) {
+      const userLabel = state.activeUser
+        ? (state.activeUser.protected ? 'الأدمن الرئيسي' : `${state.activeUser.fullName} (${state.activeUser.role})`)
+        : 'غير مسجل';
       const entry = {
         time: new Date().toLocaleString('ar-LY'),
         sessionId: state.sessionId,
+        ip: state.currentIp || '—',
         action,
-        user: state.activeUser ? `${state.activeUser.fullName} (${state.activeUser.role})` : 'زائر',
-        device: getDeviceSummary(),
-        screen: `${window.screen.width}x${window.screen.height}`
+        user: userLabel,
+        device: getDeviceSummary()
       };
       state.visitors.unshift(entry);
       if (state.visitors.length > 1000) state.visitors.length = 1000;
@@ -1269,6 +1526,9 @@
 
     // ==================== NAVIGATION ====================
     function switchTab(tabName, btnEl) {
+      if (tabName === 'users' && state.activeUser && !state.activeUser.protected && state.activeUser.role !== 'أدمن') {
+        return showToast('قسم المستخدمين مخصص للأدمن فقط');
+      }
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
       const target = document.getElementById('tab-' + tabName);
@@ -1334,7 +1594,24 @@
       renderQR('settingsAppQr', appUrl, 155);
       document.getElementById('dashMapFrame').src = getEmbedMapSrc();
 
-      document.getElementById('activeUserBadge').textContent = `👤 ${state.activeUser.fullName} (${state.activeUser.role})`;
+      // Top bar badge: hide personal name for Main Admin and show only "الأدمن الرئيسي"
+      if (state.activeUser) {
+        const badgeText = state.activeUser.protected
+          ? '👤 الأدمن الرئيسي'
+          : `👤 ${state.activeUser.fullName} (${state.activeUser.role})`;
+        document.getElementById('activeUserBadge').textContent = badgeText;
+      }
+
+      // License details card
+      if (state.license) {
+        document.getElementById('licenseDetailsGrid').innerHTML = `
+          <div><strong>المفتاح المفعّل:</strong> <code dir="ltr">${state.license.maskedKey}</code></div>
+          <div><strong>IP المرتبط:</strong> <code dir="ltr">${state.license.boundIp}</code></div>
+          <div><strong>تاريخ التفعيل:</strong> ${state.license.activatedAt}</div>
+        `;
+        document.getElementById('deactivateBtn').style.display =
+          (state.activeUser && state.activeUser.protected) ? 'inline-flex' : 'none';
+      }
     }
 
     function openClubSettingsModal() {
@@ -1740,8 +2017,6 @@
         username,
         password: document.getElementById('uPassword').value,
         role: document.getElementById('uRole').value,
-        email: '',
-        phone: '',
         active: true,
         protected: false
       };
@@ -1775,10 +2050,9 @@
       const tbody = document.getElementById('usersTbody');
       tbody.innerHTML = state.users.map(u => `
         <tr>
-          <td><strong>${u.fullName}</strong> ${u.protected ? '<span class="badge badge-teal">مسؤول النظام</span>' : ''}</td>
-          <td>${u.username}</td>
+          <td><strong>${u.protected ? 'الأدمن الرئيسي' : u.fullName}</strong> ${u.protected ? '<span class="badge badge-teal">مسؤول النظام</span>' : ''}</td>
+          <td>${u.protected ? '••••••••' : u.username}</td>
           <td>${u.role}</td>
-          <td>${u.phone ? u.phone + ' • ' + u.email : '—'}</td>
           <td>${u.active ? '<span class="badge badge-green">نشط</span>' : '<span class="badge badge-red">معطل</span>'}</td>
           <td>
             ${u.protected ? '<span style="color:#64748b;font-size:0.8rem;">محمي</span>' : `
@@ -1791,11 +2065,12 @@
     }
 
     function openLoginModal() {
+      document.getElementById('loginUsername').value = '';
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginModal').classList.add('open');
     }
 
-    function performLogin() {
+    function performModalLogin() {
       const un = document.getElementById('loginUsername').value.trim();
       const pw = document.getElementById('loginPassword').value;
       const found = state.users.find(u => u.username === un && u.password === pw);
@@ -1805,8 +2080,8 @@
       persist();
       renderClubUI();
       closeModal('loginModal');
-      logVisitorAction('تسجيل دخول المستخدم: ' + found.fullName);
-      showToast('مرحباً بك، ' + found.fullName);
+      logVisitorAction('تبديل المستخدم إلى: ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
+      showToast('مرحباً بك، ' + (found.protected ? 'الأدمن الرئيسي' : found.fullName));
     }
 
     // ==================== EXPORT EXCEL & CSV ====================
@@ -1896,10 +2171,11 @@
     function renderVisitorTable() {
       const q = (document.getElementById('visitorSearch').value || '').toLowerCase();
       const filtered = state.visitors.filter(v =>
-        v.action.toLowerCase().includes(q) ||
-        v.user.toLowerCase().includes(q) ||
-        v.device.toLowerCase().includes(q) ||
-        v.sessionId.toLowerCase().includes(q)
+        (v.action || '').toLowerCase().includes(q) ||
+        (v.user || '').toLowerCase().includes(q) ||
+        (v.device || '').toLowerCase().includes(q) ||
+        (v.ip || '').toLowerCase().includes(q) ||
+        (v.sessionId || '').toLowerCase().includes(q)
       );
       document.getElementById('vTotalEvents').textContent = state.visitors.length;
       document.getElementById('vTotalSessions').textContent = new Set(state.visitors.map(v => v.sessionId)).size;
@@ -1907,10 +2183,10 @@
         <tr>
           <td>${v.time}</td>
           <td><code>${v.sessionId}</code></td>
+          <td><code>${v.ip || '—'}</code></td>
           <td>${v.action}</td>
           <td>${v.user}</td>
           <td>${v.device}</td>
-          <td>${v.screen}</td>
         </tr>
       `).join('');
     }
@@ -1983,8 +2259,10 @@
 
     // ==================== INIT ====================
     document.getElementById('mPayDate').value = new Date().toISOString().split('T')[0];
-    logVisitorAction('زيارة جديدة للتطبيق');
-    renderAll();
+    document.getElementById('footerAddress').textContent = state.club.address;
+    enforceSecurityGates().then(() => {
+      logVisitorAction('زيارة جديدة للتطبيق');
+    });
   </script>
 </body>
 </html>

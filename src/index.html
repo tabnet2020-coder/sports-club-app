@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="نظام إدارة النادي الرياضي - تسجيل المشتركين، القياسات، الباركود، والتقارير" />
+  <title>نادي اللياقة الذكي - إدارة النادي الرياضي</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.webp" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.webp" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="نادي اللياقة" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Arabic Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Libraries: QRCode, SheetJS (Excel), Html5-QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ==================== GATE 1: ACTIVATION SERIAL & IP LOCK ==================== -->
+  <div class="gate-overlay" id="activationGate">
+    <div class="gate-card">
+      <div class="gate-icon">🔑</div>
+      <h2>تفعيل نظام النادي الرياضي</h2>
+      <p class="sub">هذا النظام محمي بسيريال تفعيل مرتبط بعنوان IP الجهاز. يرجى إدخال مفتاح التفعيل الخاص بك للمتابعة.</p>
+      <div class="ip-pill" id="detectedIpPill">🌐 جاري التحقق من IP الجهاز...</div>
+      <div class="gate-error" id="activationError"></div>
+      <form class="gate-form" onsubmit="activateLicense(event)">
+        <div class="form-group">
+          <label>سيريال التفعيل (Serial Key)</label>
+          <input type="text" id="serialKeyInput" required autocomplete="off" placeholder="SFC-XXXX-XXXX-XXXX" style="text-align:center;letter-spacing:1.5px;font-weight:800;direction:ltr;" />
+        </div>
+        <button type="submit" class="btn btn-primary" id="activateBtn" style="width:100%;padding:12px;">🔓 تفعيل وربط بـ IP الجهاز</button>
+      </form>
+      <p style="margin:14px 0 0;font-size:0.78rem;color:#64748b;">للحصول على مفتاح تفعيل، تواصل مع مسؤول النظام عبر الرقم الموجود بالأسفل.</p>
+    </div>
+  </div>
+
+  <!-- ==================== GATE 2: MANDATORY LOGIN ==================== -->
+  <div class="gate-overlay" id="loginGate">
+    <div class="gate-card">
+      <div class="gate-icon">🛡️</div>
+      <h2 id="loginClubTitle">تسجيل الدخول للنظام</h2>
+      <p class="sub">الرجاء إدخال اسم المستخدم وكلمة المرور للوصول إلى لوحة إدارة النادي.</p>
+      <div class="ip-pill" id="loginLicenseStatus">✅ النسخة مفعّلة ومرتبطة بـ IP الجهاز</div>
+      <div class="gate-error" id="loginError"></div>
+      <form class="gate-form" onsubmit="handleGateLogin(event)">
+        <div class="form-group">
+          <label>اسم المستخدم</label>
+          <input type="text" id="gateUsername" required autocomplete="username" placeholder="أدخل اسم المستخدم" />
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="gatePassword" required autocomplete="current-password" placeholder="أدخل كلمة المرور" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">🔐 دخول للنظام</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== PUBLIC CLUB HOME VIEW (NO INTERNAL DETAILS) ==================== -->
+  <div id="publicHomeView">
+    <main class="container" style="max-width:860px;">
+      <!-- Smart Direct Install Banner (Android & iOS) -->
+      <div class="install-smart-banner" id="smartInstallBanner">
+        <div>
+          <h3>📲 تثبيت تطبيق النادي على هاتفك</h3>
+          <p id="smartInstallDesc">ثبّت التطبيق الآن على شاشتك الرئيسية للوصول السريع (أندرويد و آيفون).</p>
+        </div>
+        <button class="btn btn-success" id="smartInstallBtn" onclick="handleSmartInstall()">⬇️ تثبيت التطبيق الآن</button>
+      </div>
+
+      <!-- Club Hero Card -->
+      <div class="public-hero">
+        <div class="hero-logo">🏋️</div>
+        <h1 id="pubClubName">نادي اللياقة الذكي</h1>
+        <p id="pubClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
+        <div class="public-actions">
+          <button class="btn" style="background:#fff;color:#0f766e;padding:12px 24px;font-size:0.98rem;" onclick="openLoginModal()">🔐 تسجيل الدخول للاستخدام</button>
+          <button class="btn" style="background:rgba(255,255,255,0.16);color:#fff;border:1px solid rgba(255,255,255,0.35);" onclick="openActivationFromPublic()">🔑 تفعيل الجهاز (للإدارة)</button>
+          <button class="btn" style="background:rgba(255,255,255,0.16);color:#fff;border:1px solid rgba(255,255,255,0.35);" onclick="openThemeModal()">🎨 تغيير الألوان</button>
+        </div>
+      </div>
+
+      <!-- Public Daily Tip -->
+      <div class="tip-banner">
+        <div class="tip-text">
+          <h3 id="pubTipTitle">☀️ تلميح الصباح الرياضي</h3>
+          <p id="pubTipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
+      </div>
+
+      <!-- Public Club Location & Map Only (No internal data) -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📍 عنوان النادي والموقع على الخريطة</h2>
+        </div>
+        <p id="pubAddressText" style="margin:0 0 10px;font-weight:700;color:#334155;">سبها، ليبيا</p>
+        <iframe id="pubMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MAIN APPLICATION SHELL ==================== -->
+  <div id="appShell">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-logo">🏋️</div>
+          <div>
+            <h1>
+              <span id="headerClubName">نادي اللياقة الذكي</span>
+              <button class="pill-btn" style="padding:3px 10px;font-size:0.74rem;" onclick="openClubSettingsModal()">✏️ تعديل</button>
+            </h1>
+            <p id="headerClubTagline">صحتك ولياقتك تبدأ بخطوة ذكية كل يوم</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="pill-btn" id="activeUserBadge" onclick="openLoginModal()">👤 الأدمن الرئيسي</span>
+          <button class="pill-btn" id="installPwaBtn" style="display:none;" onclick="triggerPwaInstall()">📲 تثبيت التطبيق</button>
+          <button class="pill-btn" onclick="openThemeModal()">🎨 الألوان</button>
+          <button class="pill-btn" onclick="openLoginModal()">🔑 تبديل الحساب</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Sports Navigation Buttons -->
+      <nav class="nav-grid" aria-label="الأقسام الرئيسية">
+        <button class="sport-btn active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+          <span class="ico">🏠</span><span>الرئيسية</span>
+        </button>
+        <button class="sport-btn" data-tab="register" onclick="switchTab('register', this)">
+          <span class="ico">📝</span><span>تسجيل مشترك</span>
+        </button>
+        <button class="sport-btn" data-tab="members" onclick="switchTab('members', this)">
+          <span class="ico">👥</span><span>سجل المشتركين</span>
+        </button>
+        <button class="sport-btn" data-tab="plans" onclick="switchTab('plans', this)">
+          <span class="ico">🥗</span><span>التمرين والتغذية</span>
+        </button>
+        <button class="sport-btn" data-tab="barcode" onclick="switchTab('barcode', this)">
+          <span class="ico">📷</span><span>الدخول بالباركود</span>
+        </button>
+        <button class="sport-btn" data-tab="users" id="usersNavBtn" onclick="switchTab('users', this)">
+          <span class="ico">🛡️</span><span>المستخدمون</span>
+        </button>
+        <button class="sport-btn" data-tab="location" onclick="switchTab('location', this)">
+          <span class="ico">📍</span><span>العنوان والتثبيت</span>
+        </button>
+      </nav>
+
+      <!-- 1. DASHBOARD -->
+      <section id="tab-dashboard" class="section active">
+        <div class="tip-banner">
+          <div class="tip-text">
+            <h3 id="tipPeriodTitle">☀️ تلميح الصباح الرياضي</h3>
+            <p id="tipContent">ابدأ يومك بكوبين من الماء وتمارين إطالة لمدة 10 دقائق لتنشيط الدورة الدموية.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="toggleTipPeriod()">🔄 تبديل صباح/مساء</button>
+            <button class="btn btn-primary btn-sm" onclick="nextTip()">✨ تلميح آخر</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">إجمالي المشتركين</div>
+              <div class="stat-value" id="statTotalMembers">0</div>
+            </div>
+            <div class="stat-icon">🏅</div>
+          </div>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">حضور اليوم</div>
+              <div class="stat-value" id="statTodayAttendance">0</div>
+            </div>
+            <div class="stat-icon">✅</div>
+          </div>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">إجمالي المدفوعات</div>
+              <div class="stat-value" id="statTotalPaid">0 د.ل</div>
+            </div>
+            <div class="stat-icon">💳</div>
+          </div>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">المبالغ المتبقية</div>
+              <div class="stat-value" id="statTotalRemaining" style="color:#d97706;">0 د.ل</div>
+            </div>
+            <div class="stat-icon">⏳</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📍 باركود عنوان النادي والخريطة المباشرة</h2>
+              <button class="btn btn-secondary btn-sm" onclick="switchTab('location', document.querySelector('[data-tab=location]'))">⚙️ تعديل العنوان</button>
+            </div>
+            <p id="dashAddressText" style="margin:0 0 12px;font-weight:700;color:#334155;">سبها، ليبيا</p>
+            <div class="qr-box">
+              <div id="dashLocationQr"></div>
+              <small style="margin-top:8px;color:#64748b;">امسح الباركود لفتح موقع النادي مباشرة على خرائط جوجل</small>
+            </div>
+            <iframe id="dashMapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📲 باركود تثبيت التطبيق على الهاتف</h2>
+              <button class="btn btn-primary btn-sm" onclick="printInstallPoster()">🖨️ طباعة ملصق A4</button>
+            </div>
+            <p style="margin:0 0 12px;color:#475569;font-size:0.9rem;">
+              يمكن لأي مشترك أو زائر مسح هذا الباركود لفتح التطبيق وتثبيته مباشرة على هاتفه.
+            </p>
+            <div class="qr-box">
+              <div id="dashAppQr"></div>
+              <small id="dashAppUrlLabel" style="margin-top:8px;color:#0f766e;font-weight:700;word-break:break-all;"></small>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-success" onclick="exportMembersExcel()">📊 تصدير المشتركين (Excel)</button>
+              <button class="btn btn-secondary" onclick="switchTab('register', document.querySelector('[data-tab=register]'))">➕ تسجيل مشترك جديد</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. REGISTRATION FORM -->
+      <section id="tab-register" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title" id="regFormTitle">📝 استمارة تسجيل مشترك جديد</h2>
+            <button class="btn btn-secondary btn-sm" onclick="resetRegistrationForm()">🔄 تفريغ الحقول</button>
+          </div>
+
+          <form id="memberForm" onsubmit="saveMember(event)">
+            <input type="hidden" id="editMemberId" />
+
+            <div class="form-section-title">1️⃣ البيانات الأساسية والبدنية</div>
+            <div class="grid-3">
+              <div class="form-group">
+                <label>الاسم الكامل *</label>
+                <input type="text" id="mName" required placeholder="مثال: سارة محمد علي" />
+              </div>
+              <div class="form-group">
+                <label>العمر (سنة) *</label>
+                <input type="number" id="mAge" required min="8" max="100" placeholder="25" />
+              </div>
+              <div class="form-group">
+                <label>رقم الهاتف *</label>
+                <input type="tel" id="mPhone" required placeholder="09XXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label>الوزن (كجم) *</label>
+                <input type="number" step="0.1" id="mWeight" required placeholder="68" oninput="calcBMI()" />
+              </div>
+              <div class="form-group">
+                <label>الطول (سم) *</label>
+                <input type="number" step="0.1" id="mHeight" required placeholder="165" oninput="calcBMI()" />
+              </div>
+              <div class="form-group">
+                <label>مؤشر كتلة الجسم (BMI - تلقائي)</label>
+                <input type="text" id="mBmiDisplay" readonly placeholder="يحسب تلقائياً" style="background:#f0fdfa;font-weight:700;color:#0f766e;" />
+              </div>
+            </div>
+
+            <div class="form-section-title">2️⃣ الحالة الصحية والأمراض والإصابات السابقة</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>هل تعاني من أمراض مزمنة؟</label>
+                <select id="mHasDisease" onchange="toggleDiseaseFields()">
+                  <option value="لا">لا</option>
+                  <option value="نعم">نعم</option>
+                </select>
+                <div id="diseaseBox" style="display:none;margin-top:8px;">
+                  <div class="checkbox-group">
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="السكري" /> السكري</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="ضغط الدم" /> ضغط الدم</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="الربو" /> الربو</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="أمراض القلب" /> أمراض القلب</label>
+                    <label class="chip-check"><input type="checkbox" name="diseases" value="الغدة الدرقية" /> الغدة الدرقية</label>
+                  </div>
+                  <input type="text" id="mOtherDisease" placeholder="اذكر أي مرض آخر أو تفاصيل..." style="margin-top:8px;" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>هل تعرضت لإصابات رياضية أو جسدية سابقاً؟</label>
+                <select id="mHasInjury" onchange="toggleInjuryFields()">
+                  <option value="لا">لا</option>
+                  <option value="نعم">نعم</option>
+                </select>
+                <div id="injuryBox" style="display:none;margin-top:8px;">
+                  <input type="text" id="mInjuryLocation" placeholder="مكان الإصابة (مثال: الركبة اليمنى، أسفل الظهر، الكتف...)" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section-title">3️⃣ قياسات أجزاء الجسم (بالسنتيمتر - سم)</div>
+            <div class="grid-4">
+              <div class="form-group"><label>الذراع اليمنى (سم)</label><input type="number" step="0.1" id="mArmRight" placeholder="0" /></div>
+              <div class="form-group"><label>الذراع اليسرى (سم)</label><input type="number" step="0.1" id="mArmLeft" placeholder="0" /></div>
+              <div class="form-group"><label>الفخذ الأيمن (سم)</label><input type="number" step="0.1" id="mThighRight" placeholder="0" /></div>
+              <div class="form-group"><label>الفخذ الأيسر (سم)</label><input type="number" step="0.1" id="mThighLeft" placeholder="0" /></div>
+              <div class="form-group"><label>المؤخرة / الأرداف (سم)</label><input type="number" step="0.1" id="mGlutes" placeholder="0" /></div>
+              <div class="form-group"><label>الخصر (سم)</label><input type="number" step="0.1" id="mWaist" placeholder="0" /></div>
+              <div class="form-group"><label>الصدر (سم)</label><input type="number" step="0.1" id="mChest" placeholder="0" /></div>
+              <div class="form-group"><label>الأكتاف (سم)</label><input type="number" step="0.1" id="mShoulders" placeholder="0" /></div>
+            </div>
+
+            <div class="form-section-title">4️⃣ موعد التمارين واسم المدربة</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>فترة التمارين *</label>
+                <select id="mShift" required>
+                  <option value="صباحي">الفترة الصباحية (صباحاً)</option>
+                  <option value="مسائي">الفترة المسائية (مساءً)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>اسم المدرب / المدربة *</label>
+                <input type="text" id="mCoach" list="coachesDatalist" required placeholder="مثال: كابتن أمل" />
+                <datalist id="coachesDatalist"></datalist>
+              </div>
+            </div>
+
+            <div class="form-section-title">5️⃣ الجانب المالي والدفع</div>
+            <div class="grid-4">
+              <div class="form-group">
+                <label>قيمة الاشتراك الكلية (د.ل) *</label>
+                <input type="number" step="0.5" id="mTotalFee" required placeholder="150" oninput="calcRemaining()" />
+              </div>
+              <div class="form-group">
+                <label>المبلغ المدفوع (د.ل) *</label>
+                <input type="number" step="0.5" id="mPaidAmount" required placeholder="150" oninput="calcRemaining()" />
+              </div>
+              <div class="form-group">
+                <label>المبلغ المتبقي (تلقائي)</label>
+                <input type="number" id="mRemaining" readonly style="background:#fffbeb;font-weight:800;color:#b45309;" />
+              </div>
+              <div class="form-group">
+                <label>طريقة الدفع *</label>
+                <select id="mPaymentMethod" required>
+                  <option value="نقدي">نقدي (كاش)</option>
+                  <option value="بطاقة مصرفية">بطاقة مصرفية</option>
+                  <option value="تحويل بنكي">تحويل بنكي</option>
+                  <option value="سداد / تداول">سداد / تداول</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+              <div class="form-group"><label>تاريخ الدفع / التسجيل</label><input type="date" id="mPayDate" /></div>
+              <div class="form-group"><label>ملاحظات مالية أو تدريبية</label><input type="text" id="mNotes" placeholder="أي ملاحظات إضافية..." /></div>
+            </div>
+
+            <div class="form-section-title">6️⃣ بيانات حساب المشترك للدخول للتطبيق (اختياري - يُنشأ تلقائياً)</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>اسم مستخدم المشترك (الافتراضي: رقم الهاتف)</label>
+                <input type="text" id="mAccountUsername" placeholder="اتركه فارغاً لاستخدام رقم الهاتف تلقائياً" />
+              </div>
+              <div class="form-group">
+                <label>كلمة مرور المشترك (الافتراضي: 1234)</label>
+                <input type="text" id="mAccountPassword" placeholder="الافتراضي: 1234" />
+              </div>
+            </div>
+
+            <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary">💾 حفظ البيانات وإصدار الباركود</button>
+              <button type="button" class="btn btn-secondary" onclick="resetRegistrationForm()">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. MEMBERS DIRECTORY -->
+      <section id="tab-members" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">👥 سجل المشتركين</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" onclick="exportMembersExcel()">📊 تصدير Excel (.xlsx)</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportMembersCSV()">📄 تصدير CSV</button>
+            </div>
+          </div>
+
+          <div class="grid-4" style="margin-bottom:14px;">
+            <input type="text" id="searchMember" placeholder="🔍 ابحث بالاسم أو الهاتف أو الباركود..." oninput="renderMembersTable()" />
+            <select id="filterShift" onchange="renderMembersTable()">
+              <option value="">كل الفترات</option>
+              <option value="صباحي">الفترة الصباحية</option>
+              <option value="مسائي">الفترة المسائية</option>
+            </select>
+            <select id="filterPayment" onchange="renderMembersTable()">
+              <option value="">كل الحالات المالية</option>
+              <option value="paid">خالص الدفع</option>
+              <option value="due">عليه متبقي</option>
+            </select>
+            <select id="filterCoachScope" onchange="renderMembersTable()">
+              <option value="all">كل المشتركين</option>
+              <option value="mine">المتدربون التابعون لي فقط</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الباركود</th>
+                  <th>الاسم</th>
+                  <th>العمر</th>
+                  <th>الهاتف</th>
+                  <th>الفترة</th>
+                  <th>المدربة</th>
+                  <th>المدفوع / الإجمالي</th>
+                  <th>الحالة المالية</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="membersTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 3B. WORKOUT & DIET PLANS + SHARED LAB IMAGES -->
+      <section id="tab-plans" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🥗 جدول التمرين والنظام الغذائي وصور التحاليل</h2>
+            <button class="btn btn-primary btn-sm" onclick="printSelectedMemberPlan()">🖨️ طباعة البرنامج (A4)</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>اختر المشترك لإدارة برنامجه وصوره المشتركة:</label>
+            <select id="planMemberSelect" onchange="loadSelectedMemberPlan()"></select>
+          </div>
+
+          <div id="planMemberHealthSummary" class="member-health-alert" style="display:none;"></div>
+
+          <form id="planForm" onsubmit="saveMemberPlan(event)">
+            <div class="form-section-title">🏋️ جدول التمرين الأسبوعي</div>
+            <div class="grid-3">
+              <div class="form-group"><label>السبت</label><textarea id="planSat" rows="2" placeholder="مثال: كارديو 20 د + صدر وتراي..."></textarea></div>
+              <div class="form-group"><label>الأحد</label><textarea id="planSun" rows="2" placeholder="مثال: ظهر وباي + بطن..."></textarea></div>
+              <div class="form-group"><label>الإثنين</label><textarea id="planMon" rows="2" placeholder="مثال: أرجل وأرداف..."></textarea></div>
+              <div class="form-group"><label>الثلاثاء</label><textarea id="planTue" rows="2" placeholder="مثال: راحة نشطة / مشي وإطالة..."></textarea></div>
+              <div class="form-group"><label>الأربعاء</label><textarea id="planWed" rows="2" placeholder="مثال: أكتاف وذراعين..."></textarea></div>
+              <div class="form-group"><label>الخميس</label><textarea id="planThu" rows="2" placeholder="مثال: تمارين شاملة (Full Body)..."></textarea></div>
+              <div class="form-group"><label>الجمعة</label><textarea id="planFri" rows="2" placeholder="مثال: راحة واستشفاء..."></textarea></div>
+              <div class="form-group" style="grid-column: span 2;"><label>ملاحظات وتوجيهات التمرين</label><textarea id="planWorkoutNotes" rows="2" placeholder="أي تعليمات خاصة بالإحماء أو الإصابات..."></textarea></div>
+            </div>
+
+            <div class="form-section-title">🥗 النظام الغذائي اليومي</div>
+            <div class="grid-3">
+              <div class="form-group"><label>وجبة الإفطار</label><textarea id="dietBreakfast" rows="2" placeholder="مثال: بيض مسلوق + شوفان + كوب حليب..."></textarea></div>
+              <div class="form-group"><label>وجبة خفيفة 1 (سناك)</label><textarea id="dietSnack1" rows="2" placeholder="مثال: حفنة لوز + تفاحة..."></textarea></div>
+              <div class="form-group"><label>وجبة الغداء</label><textarea id="dietLunch" rows="2" placeholder="مثال: صدر دجاج مشوي + أرز + سلطة خضراء..."></textarea></div>
+              <div class="form-group"><label>وجبة خفيفة 2 (قبل/بعد التمرين)</label><textarea id="dietSnack2" rows="2" placeholder="مثال: موزة + زبادي يوناني..."></textarea></div>
+              <div class="form-group"><label>وجبة العشاء</label><textarea id="dietDinner" rows="2" placeholder="مثال: تونة أو جبن قريش + سلطة..."></textarea></div>
+              <div class="form-group"><label>السوائل والمكملات وملاحظات التغذية</label><textarea id="dietSupplements" rows="2" placeholder="مثال: 3 لتر ماء يومياً، فيتامين د..."></textarea></div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button type="submit" class="btn btn-success">💾 حفظ جدول التمرين والنظام الغذائي</button>
+              <span id="planUpdatedMeta" style="font-size:0.83rem;color:#64748b;"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Shared Lab Tests & Photos for Selected Member -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🩺 صور التحاليل والملفات المشتركة مع المدرب</h2>
+          </div>
+
+          <form id="staffUploadImgForm" onsubmit="uploadMemberImage(event, 'staff')" class="grid-4" style="align-items:end;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;">
+            <div class="form-group">
+              <label>اختر صورة من الهاتف أو الجهاز *</label>
+              <input type="file" id="staffImgFile" accept="image/*" required />
+            </div>
+            <div class="form-group">
+              <label>نوع الصورة</label>
+              <select id="staffImgCategory">
+                <option value="تحليل طبي / مختبر">تحليل طبي / مختبر</option>
+                <option value="أشعة / تقرير طبي">أشعة / تقرير طبي</option>
+                <option value="صورة متابعة الجسم">صورة متابعة الجسم</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>عنوان / ملاحظة الصورة</label>
+              <input type="text" id="staffImgNote" placeholder="مثال: تحليل السكر التراكمي..." />
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">📤 رفع ومشاركة الصورة</button>
+            </div>
+          </form>
+
+          <div id="staffSharedImagesGallery" class="image-gallery-grid"></div>
+        </div>
+      </section>
+
+      <!-- 4. BARCODE LOGIN & ATTENDANCE -->
+      <section id="tab-barcode" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📷 مسح باركود العضوية وتسجيل الحضور</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>إدخال رمز الباركود يدوياً أو بجهاز القارئ:</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="manualBarcodeInput" placeholder="مثال: CLUB-1001" onkeydown="if(event.key==='Enter') checkInByBarcode()" />
+                <button class="btn btn-primary" onclick="checkInByBarcode()">✅ دخول</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" onclick="startCameraScanner()">📸 تشغيل الكاميرا للمسح</button>
+              <button class="btn btn-danger btn-sm" onclick="stopCameraScanner()">⏹️ إيقاف الكاميرا</button>
+            </div>
+            <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden;"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">🪪 نتيجة المسح وملف المشترك</h2>
+            </div>
+            <div id="scanResultBox" style="color:#64748b;text-align:center;padding:24px 10px;">
+              قم بمسح باركود المشترك أو إدخاله لعرض بياناته الكاملة وتسجيل حضوره تلقائياً.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📋 سجل الحضور اليومي</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الوقت والتاريخ</th>
+                  <th>الباركود</th>
+                  <th>اسم المشترك</th>
+                  <th>الفترة</th>
+                  <th>المدربة</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. USERS & LICENSE -->
+      <section id="tab-users" class="section">
+        <div class="card" id="licenseInfoCard">
+          <div class="card-header">
+            <h2 class="card-title">🔑 حالة التفعيل والربط بـ IP الجهاز</h2>
+            <button class="btn btn-danger btn-sm" id="deactivateBtn" onclick="deactivateLicense()">🔄 إلغاء تفعيل هذا الجهاز</button>
+          </div>
+          <div class="grid-3" id="licenseDetailsGrid" style="font-size:0.9rem;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🛡️ إدارة المستخدمين والصلاحيات</h2>
+            <button class="btn btn-primary btn-sm" onclick="openLoginModal()">🔑 تبديل المستخدم</button>
+          </div>
+
+          <form id="userForm" onsubmit="addUser(event)" class="grid-4" style="margin-bottom:18px;align-items:end;">
+            <div class="form-group">
+              <label>الاسم الكامل *</label>
+              <input type="text" id="uFullName" required placeholder="مثال: أمل السالم" />
+            </div>
+            <div class="form-group">
+              <label>اسم المستخدم *</label>
+              <input type="text" id="uUsername" required placeholder="amal_coach" />
+            </div>
+            <div class="form-group">
+              <label>كلمة المرور *</label>
+              <input type="password" id="uPassword" required placeholder="****" />
+            </div>
+            <div class="form-group">
+              <label>الدور الوظيفي</label>
+              <select id="uRole">
+                <option value="مدرب">مدرب</option>
+                <option value="مدربة">مدربة</option>
+                <option value="استقبال">استقبال</option>
+                <option value="محاسب">محاسب</option>
+                <option value="أدمن">أدمن</option>
+              </select>
+            </div>
+            <div>
+              <button type="submit" class="btn btn-success" style="width:100%;">➕ إضافة مستخدم</button>
+            </div>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الاسم</th>
+                  <th>اسم المستخدم</th>
+                  <th>الصلاحية</th>
+                  <th>الحالة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="usersTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. LOCATION & APP INSTALL -->
+      <section id="tab-location" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📍 إعدادات عنوان النادي والخريطة</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>عنوان النادي (كتابةً):</label>
+              <input type="text" id="clubAddressInput" placeholder="مثال: سبها - شارع جمال عبد الناصر" />
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>رابط خرائط جوجل (اختياري - لصق الرابط المباشر):</label>
+              <input type="url" id="clubMapUrlInput" placeholder="https://maps.google.com/?q=..." />
+            </div>
+            <button class="btn btn-primary" onclick="saveClubLocation()">💾 حفظ وتحديث الباركود والخريطة</button>
+            <div class="qr-box" style="margin-top:16px;">
+              <div id="settingsLocationQr"></div>
+              <small style="margin-top:6px;color:#64748b;">باركود عنوان النادي</small>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">📲 إعدادات باركود تثبيت التطبيق (PWA)</h2>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>رابط استضافة التطبيق (Render / GitHub Pages):</label>
+              <input type="url" id="appUrlInput" placeholder="https://sports-club-app.onrender.com" />
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+              <button class="btn btn-primary" onclick="saveAppUrl()">💾 تحديث باركود التثبيت</button>
+              <button class="btn btn-success" onclick="printInstallPoster()">🖨️ طباعة ملصق A4 للتثبيت</button>
+            </div>
+            <div class="qr-box">
+              <div id="settingsAppQr"></div>
+              <small style="margin-top:6px;color:#0f766e;font-weight:700;">امسح لتثبيت التطبيق على الهاتف</small>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 7. MEMBER PERSONAL PORTAL (Visible when a registered member logs in) -->
+      <section id="tab-member-portal" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🪪 حسابي الشخصي كمشترك</h2>
+            <button class="btn btn-primary btn-sm" id="portalPrintCardBtn">🖨️ طباعة بطاقة العضوية (A4)</button>
+          </div>
+          <div id="memberPortalBody"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🥗 جدول التمرين والنظام الغذائي الخاص بي</h2>
+            <button class="btn btn-primary btn-sm" id="portalPrintPlanBtn">🖨️ طباعة البرنامج (A4)</button>
+          </div>
+          <div id="memberPortalPlanBody"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">🩺 مشاركة صور التحاليل أو أي صورة مع المدرب</h2>
+          </div>
+          <p style="margin:0 0 12px;font-size:0.88rem;color:#475569;">
+            يمكنك تصوير أو رفع صور التحاليل الطبية أو أي صورة من هاتفك ومشاركتها مباشرة مع مدربك ليطلع عليها ويرد بملاحظاته.
+          </p>
+          <form id="memberUploadImgForm" onsubmit="uploadMemberImage(event, 'member')" class="grid-4" style="align-items:end;background:#f0fdfa;padding:14px;border-radius:12px;border:1px solid #99f6e4;">
+            <div class="form-group">
+              <label>اختر صورة من الهاتف (الكاميرا أو المعرض) *</label>
+              <input type="file" id="memberImgFile" accept="image/*" required />
+            </div>
+            <div class="form-group">
+              <label>نوع الصورة</label>
+              <select id="memberImgCategory">
+                <option value="تحليل طبي / مختبر">تحليل طبي / مختبر</option>
+                <option value="أشعة / تقرير طبي">أشعة / تقرير طبي</option>
+                <option value="صورة متابعة الجسم">صورة متابعة الجسم</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ملاحظة للمدرب</label>
+              <input type="text" id="memberImgNote" placeholder="مثال: نتيجة تحليل الفيتامينات اليوم..." />
+            </div>
+            <div>
+              <button type="submit" class="btn btn-success" style="width:100%;">📤 إرسال ومشاركة مع المدرب</button>
+            </div>
+          </form>
+          <div id="memberPortalImagesGallery" class="image-gallery-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📋 سجل حضوري</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>الوقت والتاريخ</th>
+                  <th>الفترة</th>
+                  <th>المدرب / المدربة</th>
+                </tr>
+              </thead>
+              <tbody id="memberPortalAttendanceTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- PERSISTENT BOTTOM FOOTER -->
+  <footer class="persistent-footer">
+    <div class="footer-inner">
+      <div class="footer-info">
+        <span>👨‍💻 <strong>المطور ومسؤول النظام:</strong> عمر الطابوني</span>
+        <span>📍 <strong>العنوان:</strong> <span id="footerAddress">سبها، ليبيا</span></span>
+        <span>📞 <strong>الهاتف:</strong> 0923482662</span>
+      </div>
+      <div class="footer-links">
+        <a href="tel:0923482662">📞 اتصال</a>
+        <a href="https://wa.me/218923482662" target="_blank" rel="noopener">💬 واتساب</a>
+        <a href="mailto:tabnet2020@gmail.com">✉️ البريد</a>
+        <button onclick="openVisitorLogPrompt()">👁️ سجل الزوار</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: Club Name Settings -->
+  <div class="modal-backdrop" id="clubSettingsModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title">✏️ تخصيص اسم النادي وشعاره</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('clubSettingsModal')">✖</button>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>اسم النادي:</label>
+        <input type="text" id="inputClubName" />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>الشعار / الوصف المختصر:</label>
+        <input type="text" id="inputClubTagline" />
+      </div>
+      <button class="btn btn-primary" onclick="saveClubBrand()">💾 حفظ التغييرات</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Switch User (NO credentials hints shown) -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title">🔑 تبديل المستخدم</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('loginModal')">✖</button>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>اسم المستخدم:</label>
+        <input type="text" id="loginUsername" autocomplete="off" placeholder="أدخل اسم المستخدم" />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>كلمة المرور:</label>
+        <input type="password" id="loginPassword" autocomplete="off" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter') performModalLogin()" />
+      </div>
+      <button class="btn btn-primary" onclick="performModalLogin()">دخول</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Member Full Profile -->
+  <div class="modal-backdrop" id="memberProfileModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title">🪪 ملف المشترك الكامل</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('memberProfileModal')">✖</button>
+      </div>
+      <div id="memberProfileBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Visitor Log (Password Protected) -->
+  <div class="modal-backdrop" id="visitorModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title">👁️ سجل الزوار والأنشطة (محمي)</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeVisitorLog()">🔒 قفل وإغلاق</button>
+      </div>
+
+      <div id="visitorAuthGate">
+        <p style="color:#475569;margin-top:0;">أدخل كلمة المرور الخاصة بمسؤول النظام للوصول إلى سجل الزوار:</p>
+        <div style="display:flex;gap:8px;max-width:420px;">
+          <input type="password" id="visitorPasswordInput" placeholder="كلمة المرور..." onkeydown="if(event.key==='Enter') unlockVisitorLog()" />
+          <button class="btn btn-primary" onclick="unlockVisitorLog()">🔓 فتح</button>
+        </div>
+      </div>
+
+      <div id="visitorLogContent" style="display:none;">
+        <div class="stats-grid" style="margin-bottom:12px;">
+          <div class="stat-card">
+            <div><div class="stat-label">إجمالي الأحداث والزيارات</div><div class="stat-value" id="vTotalEvents">0</div></div>
+            <div class="stat-icon">📊</div>
+          </div>
+          <div class="stat-card">
+            <div><div class="stat-label">عدد الجلسات</div><div class="stat-value" id="vTotalSessions">0</div></div>
+            <div class="stat-icon">🖥️</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <input type="text" id="visitorSearch" placeholder="🔍 بحث في السجل..." oninput="renderVisitorTable()" style="flex:1;min-width:200px;" />
+          <button class="btn btn-success btn-sm" onclick="exportVisitorLogExcel()">📊 تصدير Excel</button>
+          <button class="btn btn-danger btn-sm" onclick="clearVisitorLog()">🗑️ مسح السجل</button>
+        </div>
+        <div class="table-wrap" style="max-height:380px;overflow-y:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>الوقت والتاريخ</th>
+                <th>رقم الجلسة</th>
+                <th>IP</th>
+                <th>الإجراء</th>
+                <th>المستخدم</th>
+                <th>الجهاز / المتصفح</th>
+              </tr>
+            </thead>
+            <tbody id="visitorTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Image Lightbox Preview -->
+  <div class="modal-backdrop" id="imageLightboxModal">
+    <div class="modal modal-lg">
+      <div class="card-header">
+        <h3 class="card-title" id="lightboxTitle">🖼️ معاينة الصورة</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('imageLightboxModal')">✖</button>
+      </div>
+      <img id="lightboxImgEl" class="lightbox-img" alt="صورة مشتركة" />
+      <p id="lightboxMeta" style="margin:10px 0 6px;font-size:0.88rem;color:#334155;"></p>
+      <div id="lightboxReply" class="coach-reply-box" style="display:none;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <a id="lightboxDownloadBtn" class="btn btn-primary btn-sm" download="shared-image.jpg">⬇️ حفظ الصورة</a>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('imageLightboxModal')">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Direct Install Guide (iOS Safari & Android Fallback) -->
+  <div class="modal-backdrop" id="installGuideModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title" id="installGuideTitle">📲 تثبيت التطبيق على هاتفك</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('installGuideModal')">✖</button>
+      </div>
+      <div id="installGuideBody" class="ios-steps-box"></div>
+      <div style="margin-top:14px;text-align:left;">
+        <button class="btn btn-primary" onclick="closeModal('installGuideModal')">حسناً، فهمت</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Color Themes & Custom Style Picker -->
+  <div class="modal-backdrop" id="themeModal">
+    <div class="modal">
+      <div class="card-header">
+        <h3 class="card-title">🎨 اختيار ألوان وستايل الواجهة</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('themeModal')">✖</button>
+      </div>
+      <p style="margin:0 0 14px;font-size:0.86rem;color:var(--muted);">
+        اختر الثيم المفضل لديك وسيتم تطبيقه وحفظه تلقائياً على جهازك:
+      </p>
+      <div class="theme-grid" id="themeGrid">
+        <button type="button" class="theme-option" data-theme-id="teal" onclick="applyTheme('teal')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#0f766e,#14b8a6);"></span>
+          <span>تركوازي هادئ</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-id="rose" onclick="applyTheme('rose')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#be185d,#f43f5e);"></span>
+          <span>وردي رياضي</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-id="purple" onclick="applyTheme('purple')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6);"></span>
+          <span>بنفسجي عصري</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-id="blue" onclick="applyTheme('blue')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);"></span>
+          <span>أزرق ملكي</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-id="orange" onclick="applyTheme('orange')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#c2410c,#f97316);"></span>
+          <span>برتقالي حيوي</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-id="dark" onclick="applyTheme('dark')">
+          <span class="theme-swatch" style="background:linear-gradient(135deg,#0f172a,#14b8a6);"></span>
+          <span>الوضع الداكن 🌙</span>
+        </button>
+      </div>
+
+      <div class="custom-color-row">
+        <div>
+          <strong style="display:block;font-size:0.9rem;">🎯 لون مخصص حسب رغبتك</strong>
+          <small style="color:var(--muted);">اختر أي لون لتخصيص واجهة النادي فوراً</small>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="color" id="customThemeColor" value="#0f766e" oninput="applyCustomColor(this.value)" />
+          <button type="button" class="btn btn-primary btn-sm" onclick="applyCustomColor(document.getElementById('customThemeColor').value)">تطبيق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT AREA (A4) -->
+  <div id="printArea"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
